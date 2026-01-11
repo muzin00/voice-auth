@@ -1,0 +1,63 @@
+[project]
+name = "vca-server"
+version = "0.1.0"
+description = "VCA Server"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "vca-api",
+    "vca-store",
+    "vca-core",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+vca-api = { workspace = true }
+vca-store = { workspace = true }
+vca-core = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pyright>=1.1.408",
+    "ruff>=0.9.6",
+    "coverage>=7.6.10",
+    "pre-commit>=4.1.0",
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+exclude = ["venv", ".venv", "alembic"]
+
+[tool.ruff]
+target-version = "py310"
+exclude = ["alembic"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long
+    "B008", # do not perform function calls in argument defaults
+]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["packages"]
+
+[tool.coverage.report]
+show_missing = true
