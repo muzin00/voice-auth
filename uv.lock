@@ -1585,6 +1585,16 @@ requires-dist = [
 name = "vca-core"
 version = "0.1.0"
 source = { editable = "packages/vca_core" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "sqlmodel" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pydantic" },
+    { name = "sqlmodel" },
+]
 
 [[package]]
 name = "vca-server"
