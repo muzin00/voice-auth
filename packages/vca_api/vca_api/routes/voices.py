@@ -18,7 +18,7 @@ async def register_voice(
         speaker_name=request.speaker_name,
     )
 
-    # TODO: 音声データの処理 (audio_data)
+    # TODO: 音声データの処理 (audio_data, audio_format, sample_rate, channels)
 
     return VoiceRegistrationResponse(
         voice_id="voice_stub_12345",  # TODO: 実装
