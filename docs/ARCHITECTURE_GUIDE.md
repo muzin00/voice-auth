@@ -51,15 +51,17 @@ vca_server/
             └── exceptions/     # カスタム例外
 ```
 
-## 依存の流れ
-
-```
-vca_api → vca_store → vca_core
-```
-
 - **vca_api**: FastAPIに依存。Composition Root（依存関係の組み立て）
 - **vca_store**: 永続化を担当。SQLModel/SQLAlchemy等でvca_coreのProtocolを実装
 - **vca_core**: ドメインロジックの中心。Webフレームワーク非依存
+
+## 依存の流れ
+
+```
+vca_api → { vca_core, vca_store }
+vca_store → vca_core
+vca_core → (依存なし)
+```
 
 ## 依存性逆転（Repository Interface パターン）
 
