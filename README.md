@@ -39,9 +39,48 @@ export DB_NAME=vca_db
 export DB_USER=vca_user
 export ROOT_PASSWORD="<SECURE_ROOT_PASSWORD>"
 export DB_PASSWORD="<SECURE_DB_PASSWORD>"
+export BUCKET_NAME="${PROJECT_ID}-vca-voices"
 ```
 
-### 3. Cloud SQL セットアップ
+### 3. GCS バケット セットアップ
+
+```bash
+# バケット作成
+gsutil mb -p $PROJECT_ID -c STANDARD -l $REGION gs://$BUCKET_NAME/
+
+# ライフサイクルルール設定（90日後に削除）
+cat > /tmp/lifecycle.json << 'EOF'
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": {"type": "Delete"},
+        "condition": {
+          "age": 90,
+          "matchesPrefix": ["voices/"]
+        }
+      }
+    ]
+  }
+}
+EOF
+gsutil lifecycle set /tmp/lifecycle.json gs://$BUCKET_NAME/
+
+# CORS設定
+cat > /tmp/cors.json << 'EOF'
+[
+  {
+    "origin": ["*"],
+    "method": ["GET", "HEAD"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]
+EOF
+gsutil cors set /tmp/cors.json gs://$BUCKET_NAME/
+```
+
+### 4. Cloud SQL セットアップ
 
 ```bash
 # インスタンス作成（5-10分）
@@ -130,7 +169,7 @@ gcloud run deploy vca-server \
   --region=$REGION \
   --platform=managed \
   --allow-unauthenticated \
-  --set-env-vars="POSTGRES_SERVER=/cloudsql/$CONNECTION_NAME,POSTGRES_PORT=5432,POSTGRES_USER=$DB_USER,POSTGRES_DB=$DB_NAME" \
+  --set-env-vars="POSTGRES_SERVER=/cloudsql/$CONNECTION_NAME,POSTGRES_PORT=5432,POSTGRES_USER=$DB_USER,POSTGRES_DB=$DB_NAME,STORAGE_TYPE=gcs,GCS_BUCKET_NAME=$BUCKET_NAME,GCS_PROJECT_ID=$PROJECT_ID" \
   --set-secrets="POSTGRES_PASSWORD=vca-db-password:latest" \
   --add-cloudsql-instances=$CONNECTION_NAME \
   --max-instances=10 \
