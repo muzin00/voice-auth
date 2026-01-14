@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Copy workspace configuration
+COPY pyproject.toml uv.lock ./
+
+# Copy only required packages
+COPY packages/vca_worker ./packages/vca_worker
+COPY packages/vca_core ./packages/vca_core
+COPY packages/vca_store ./packages/vca_store
+
+# Install dependencies (only vca-worker and its dependencies)
+RUN uv sync --frozen --package vca-worker
+
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app
+
+CMD ["celery", "-A", "vca_worker.celery_app", "worker", "--loglevel=info"]
