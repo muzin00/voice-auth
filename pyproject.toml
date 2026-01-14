@@ -3,11 +3,7 @@ name = "vca-server"
 version = "0.1.0"
 description = "VCA Server"
 requires-python = ">=3.11,<4.0"
-dependencies = [
-    "vca-api",
-    "vca-store",
-    "vca-core",
-]
+dependencies = ["vca-api", "vca-store", "vca-core", "vca-worker"]
 
 [tool.uv]
 package = false
@@ -19,6 +15,7 @@ members = ["packages/*"]
 vca-api = { workspace = true }
 vca-store = { workspace = true }
 vca-core = { workspace = true }
+vca-worker = { workspace = true }
 
 [dependency-groups]
 dev = [
