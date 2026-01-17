@@ -9,6 +9,7 @@ from vca_core.interfaces.speaker_repository import SpeakerRepositoryProtocol
 from vca_core.interfaces.storage import StorageProtocol
 from vca_core.interfaces.voice_sample_repository import VoiceSampleRepositoryProtocol
 from vca_core.interfaces.voiceprint_repository import VoiceprintRepositoryProtocol
+from vca_core.interfaces.worker_client import WorkerClientProtocol
 from vca_core.models import Passphrase, Speaker, Voiceprint, VoiceSample
 
 logger = logging.getLogger(__name__)
@@ -34,12 +35,14 @@ class AuthService:
         voiceprint_repository: VoiceprintRepositoryProtocol,
         passphrase_repository: PassphraseRepositoryProtocol,
         storage: StorageProtocol,
+        worker_client: WorkerClientProtocol,
     ):
         self.speaker_repository = speaker_repository
         self.voice_sample_repository = voice_sample_repository
         self.voiceprint_repository = voiceprint_repository
         self.passphrase_repository = passphrase_repository
         self.storage = storage
+        self.worker_client = worker_client
 
     def register(
         self,
@@ -151,13 +154,9 @@ class AuthService:
         return storage_path
 
     def _transcribe_audio(self, audio_bytes: bytes) -> str:
-        """音声を文字起こし（TODO: Phase 3で実装）."""
-        # TODO: faster-whisperで実装
-        logger.warning("Transcription not implemented, using stub")
-        return "stub_passphrase"
+        """音声を文字起こし."""
+        return self.worker_client.transcribe(audio_bytes)
 
     def _extract_voiceprint(self, audio_bytes: bytes) -> bytes:
-        """声紋を抽出（TODO: Phase 3で実装）."""
-        # TODO: Resemblyzerで実装
-        logger.warning("Voiceprint extraction not implemented, using stub")
-        return b"\x00" * 256 * 4  # 256次元のfloat32のダミー
+        """声紋を抽出."""
+        return self.worker_client.extract_voiceprint(audio_bytes)
