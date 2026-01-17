@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -28,5 +28,5 @@ class VoiceSample(SQLModel, table=True):
 
     # Relationships
     speaker: "Speaker" = Relationship(back_populates="voice_samples")
-    voiceprint: "Voiceprint | None" = Relationship(back_populates="voice_sample")
-    passphrase: "Passphrase | None" = Relationship(back_populates="voice_sample")
+    voiceprint: Optional["Voiceprint"] = Relationship(back_populates="voice_sample")
+    passphrase: Optional["Passphrase"] = Relationship(back_populates="voice_sample")
