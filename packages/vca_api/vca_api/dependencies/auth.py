@@ -12,7 +12,7 @@ from vca_store.repositories import (
 )
 from vca_store.session import get_session
 
-from vca_api.dependencies.voice import get_storage
+from vca_api.dependencies.storage import get_storage
 
 
 def get_auth_service(

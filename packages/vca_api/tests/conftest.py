@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
-from vca_api.dependencies.voice import get_storage
+from vca_api.dependencies.storage import get_storage
 from vca_api.main import app
 from vca_store.session import get_session
 from vca_store.storages import LocalStorage

@@ -4,7 +4,6 @@ import uvicorn
 from fastapi import FastAPI
 
 from vca_api.routes.auth import router as auth_router
-from vca_api.routes.voices import router as voices_router
 from vca_api.settings import server_settings
 
 # ロギング設定
@@ -19,7 +18,6 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
-app.include_router(voices_router)
 
 
 @app.get("/health")
