@@ -49,6 +49,7 @@ services:
       - .env
     environment:
       - ENVIRONMENT=development
+      - PORT=8000
       - DB_TYPE=${DB_TYPE:-sqlite}
       - SQLITE_PATH=/app/data/vca.db
       - POSTGRES_SERVER=db
@@ -57,13 +58,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
     ports:
-      - "8000:8080"
+      - "8000:8000"
     volumes:
       - .:/app
       - /app/.venv
       - sqlite_data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
