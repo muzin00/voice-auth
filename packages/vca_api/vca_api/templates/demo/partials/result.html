@@ -44,6 +44,10 @@
                 <span class="text-gray-900">{{ data.speaker_id }}</span>
             </div>
             <div class="flex items-start">
+                <span class="font-semibold text-gray-700 w-40">検出されたパスフレーズ:</span>
+                <span class="text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">{{ data.detected_passphrase }}</span>
+            </div>
+            <div class="flex items-start">
                 <span class="font-semibold text-gray-700 w-40">パスフレーズ一致:</span>
                 <span class="{% if data.passphrase_match %}text-green-600{% else %}text-red-600{% endif %}">
                     {% if data.passphrase_match %}✅ 一致{% else %}❌ 不一致{% endif %}

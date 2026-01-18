@@ -66,4 +66,5 @@ class AuthVerifyResponse(BaseModel):
     speaker_id: str = Field(..., description="話者ID")
     passphrase_match: bool = Field(..., description="パスフレーズ一致フラグ")
     voice_similarity: float = Field(..., description="声紋類似度（0.0〜1.0）")
+    detected_passphrase: str = Field(..., description="音声から検出されたパスフレーズ")
     message: str = Field(..., description="認証結果メッセージ")

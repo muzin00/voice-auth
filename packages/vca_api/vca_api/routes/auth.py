@@ -56,5 +56,6 @@ async def verify(
         speaker_id=result.speaker_id,
         passphrase_match=result.passphrase_match,
         voice_similarity=result.voice_similarity,
+        detected_passphrase=result.detected_passphrase,
         message=result.message,
     )

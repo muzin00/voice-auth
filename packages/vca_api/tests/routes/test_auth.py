@@ -119,6 +119,8 @@ class TestAuthVerify:
         assert data["authenticated"] is True
         assert data["passphrase_match"] is True
         assert "voice_similarity" in data
+        assert "detected_passphrase" in data
+        assert data["detected_passphrase"] == "mock_passphrase"
         assert "message" in data
 
     def test_verify_speaker_with_audio_format(
@@ -137,6 +139,7 @@ class TestAuthVerify:
         data = response.json()
         assert data["speaker_id"] == registered_speaker.speaker_id
         assert data["authenticated"] is True
+        assert data["detected_passphrase"] == "mock_passphrase"
 
     def test_verify_speaker_not_found(self, client: TestClient):
         """存在しない話者でエラー."""

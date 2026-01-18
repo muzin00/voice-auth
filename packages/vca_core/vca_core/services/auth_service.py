@@ -36,6 +36,7 @@ class AuthVerifyResult:
     speaker_id: str
     passphrase_match: bool
     voice_similarity: float
+    detected_passphrase: str
     message: str
 
 
@@ -97,7 +98,7 @@ class AuthService:
         logger.info(f"VoiceSample created: {voice_sample.public_id}")
 
         # 6. 文字起こし（TODO: Phase 3で実装）
-        transcribed_text = self._transcribe_audio(audio_bytes, audio_format)
+        detected_passphrase = self._transcribe_audio(audio_bytes, audio_format)
 
         # 7. 声紋抽出（TODO: Phase 3で実装）
         embedding = self._extract_voiceprint(audio_bytes, audio_format)
@@ -106,7 +107,7 @@ class AuthService:
         passphrase = self.passphrase_repository.create(
             speaker_id=speaker.id,
             voice_sample_id=voice_sample.id,
-            phrase=transcribed_text,
+            phrase=detected_passphrase,
         )
         logger.info(f"Passphrase created: {passphrase.public_id}")
 
@@ -200,8 +201,8 @@ class AuthService:
         audio_bytes = self._decode_audio_data(audio_data)
 
         # 3. 文字起こし（正規化済み）
-        transcribed_text = self._transcribe_audio(audio_bytes, audio_format)
-        logger.info(f"Transcribed text: {transcribed_text}")
+        detected_passphrase = self._transcribe_audio(audio_bytes, audio_format)
+        logger.info(f"Detected passphrase: {detected_passphrase}")
 
         # 4. 登録済みパスフレーズを取得
         passphrases = self.passphrase_repository.get_by_speaker_id(speaker.id)
@@ -211,12 +212,13 @@ class AuthService:
                 speaker_id=speaker_id,
                 passphrase_match=False,
                 voice_similarity=0.0,
+                detected_passphrase=detected_passphrase,
                 message="パスフレーズが登録されていません",
             )
 
         # 5. パスフレーズ照合（完全一致）
         registered_phrases = [p.phrase for p in passphrases]
-        passphrase_match = transcribed_text in registered_phrases
+        passphrase_match = detected_passphrase in registered_phrases
         logger.info(f"Passphrase match: {passphrase_match}")
 
         # 6. 声紋抽出
@@ -249,6 +251,7 @@ class AuthService:
             speaker_id=speaker_id,
             passphrase_match=passphrase_match,
             voice_similarity=voice_similarity,
+            detected_passphrase=detected_passphrase,
             message=message,
         )
 
