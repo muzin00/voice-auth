@@ -75,7 +75,7 @@ class VoiceprintSettings(BaseSettings):
 
     # 声紋類似度の閾値（0.0〜1.0）
     # この値以上の類似度で声紋一致と判定
-    VOICEPRINT_SIMILARITY_THRESHOLD: float = 0.7
+    VOICEPRINT_SIMILARITY_THRESHOLD: float = 0.4
 
     model_config = {"env_prefix": ""}
 
