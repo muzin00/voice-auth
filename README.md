@@ -178,7 +178,7 @@ export CONNECTION_NAME=$(gcloud sql instances describe $INSTANCE_NAME --format="
 echo "Connection Name: $CONNECTION_NAME"
 ```
 
-### 4. Secret Manager セットアップ
+### 5. Secret Manager セットアップ
 
 ```bash
 # パスワードをSecretに保存
@@ -198,7 +198,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role="roles/cloudsql.client"
 ```
 
-### 5. コンテナイメージビルド
+### 6. コンテナイメージビルド
 
 ```bash
 # 初回イメージビルド（まだ公開しない）
@@ -214,7 +214,7 @@ IMAGE_URL=$(gcloud run services describe vca-server \
   --format="value(spec.template.spec.containers[0].image)")
 ```
 
-### 6. マイグレーション用 Cloud Run Job 作成
+### 7. マイグレーション用 Cloud Run Job 作成
 
 ```bash
 gcloud run jobs create migration-upgrade \
@@ -229,7 +229,7 @@ gcloud run jobs create migration-upgrade \
   --task-timeout=300
 ```
 
-### 7. マイグレーション実行
+### 8. マイグレーション実行
 
 ```bash
 gcloud run jobs execute migration-upgrade \
@@ -237,7 +237,7 @@ gcloud run jobs execute migration-upgrade \
   --wait
 ```
 
-### 8. Cloud Run デプロイ（外部公開）
+### 9. Cloud Run デプロイ（外部公開）
 
 ```bash
 gcloud run deploy vca-server \
