@@ -539,6 +539,20 @@ gcloud run jobs execute migration-reset --region asia-northeast1 --wait
 gcloud run jobs execute migration-upgrade --region asia-northeast1 --wait
 ```
 
+### Artifact Registryクリーンアップ
+
+コンテナイメージが溜まるのを防ぐため、クリーンアップポリシーを設定します。
+
+```bash
+# クリーンアップポリシーを適用（最新2つのイメージを保持）
+gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
+    --project=myusuke-vca-server \
+    --location=asia-northeast1 \
+    --policy=deployment/artifact-registry-cleanup-policy.json
+```
+
+> このポリシーにより、古いイメージが自動的に削除され、ストレージコストを削減できます。
+
 ### トラブルシューティング
 
 ```bash
@@ -557,6 +571,7 @@ gcloud run services update-traffic vca-server \
 - **API**: Cloud Run (FastAPI)
 - **Database**: Cloud SQL (PostgreSQL 16)
 - **Storage**: GCS (音声ファイル)
+- **Container Registry**: Artifact Registry (自動クリーンアップ有効)
 - **Secrets**: Secret Manager
 - **Migrations**: Cloud Run Jobs (Alembic)
 
@@ -565,6 +580,7 @@ gcloud run services update-traffic vca-server \
 - **API**: Cloud Run (FastAPI)
 - **Database**: SQLite on GCS FUSE
 - **Storage**: GCS (音声ファイル + DBファイル)
+- **Container Registry**: Artifact Registry (自動クリーンアップ有効)
 - **Migrations**: Cloud Run Jobs (Alembic)
 
 ## コスト概算（東京リージョン）
