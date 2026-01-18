@@ -33,6 +33,22 @@ docker compose exec app sh -c "uv sync && uv run pyright"
 docker compose exec app sh -c "uv sync && uv run ruff check ."
 ```
 
+### API動作確認
+
+```bash
+# 声紋登録（WAV形式の音声ファイルを使用）
+AUDIO_BASE64=$(base64 -i samples/sample1.wav)
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"speaker_id\": \"test_user\", \"audio_data\": \"$AUDIO_BASE64\", \"audio_format\": \"wav\"}"
+
+# 声紋認証
+AUDIO_BASE64=$(base64 -i samples/sample1.wav)
+curl -X POST http://localhost:8000/api/v1/auth/verify \
+  -H "Content-Type: application/json" \
+  -d "{\"speaker_id\": \"test_user\", \"audio_data\": \"$AUDIO_BASE64\", \"audio_format\": \"wav\"}"
+```
+
 ---
 
 ## GCP Cloud Runへのデプロイ
