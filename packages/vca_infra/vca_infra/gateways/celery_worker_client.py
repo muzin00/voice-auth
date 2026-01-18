@@ -21,8 +21,8 @@ class CeleryWorkerClient(WorkerClientProtocol):
             broker=celery_settings.CELERY_BROKER_URL,
             backend=celery_settings.CELERY_RESULT_BACKEND,
         )
-        # タスク結果の取得にpickleを使用
         self._app.conf.update(
+            task_serializer="pickle",
             result_serializer="pickle",
             accept_content=["pickle"],
         )
