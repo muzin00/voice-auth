@@ -3,8 +3,8 @@ from collections.abc import Generator
 from fastapi import Depends
 from sqlmodel import Session
 from vca_core.services import SpeakerService
-from vca_store.repositories import SpeakerRepository
-from vca_store.session import get_session
+from vca_infra.repositories import SpeakerRepository
+from vca_infra.session import get_session
 
 
 def get_speaker_service(

@@ -10,8 +10,8 @@ resolution-markers = [
 members = [
     "vca-api",
     "vca-core",
+    "vca-infra",
     "vca-server",
-    "vca-store",
     "vca-worker",
 ]
 
@@ -2288,7 +2288,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pydantic-settings" },
     { name = "vca-core" },
-    { name = "vca-store" },
+    { name = "vca-infra" },
     { name = "vca-worker" },
 ]
 
@@ -2297,7 +2297,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"] },
     { name = "pydantic-settings" },
     { name = "vca-core", editable = "packages/vca_core" },
-    { name = "vca-store", editable = "packages/vca_store" },
+    { name = "vca-infra", editable = "packages/vca_infra" },
     { name = "vca-worker", editable = "packages/vca_worker" },
 ]
 
@@ -2319,48 +2319,9 @@ requires-dist = [
 ]
 
 [[package]]
-name = "vca-server"
+name = "vca-infra"
 version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "vca-api" },
-    { name = "vca-core" },
-    { name = "vca-store" },
-    { name = "vca-worker" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "coverage" },
-    { name = "pre-commit" },
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "vca-api", editable = "packages/vca_api" },
-    { name = "vca-core", editable = "packages/vca_core" },
-    { name = "vca-store", editable = "packages/vca_store" },
-    { name = "vca-worker", editable = "packages/vca_worker" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage", specifier = ">=7.6.10" },
-    { name = "pre-commit", specifier = ">=4.1.0" },
-    { name = "pyright", specifier = ">=1.1.408" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "ruff", specifier = ">=0.9.6" },
-]
-
-[[package]]
-name = "vca-store"
-version = "0.1.0"
-source = { editable = "packages/vca_store" }
+source = { editable = "packages/vca_infra" }
 dependencies = [
     { name = "alembic" },
     { name = "google-cloud-storage" },
@@ -2381,6 +2342,45 @@ requires-dist = [
 ]
 
 [[package]]
+name = "vca-server"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "vca-api" },
+    { name = "vca-core" },
+    { name = "vca-infra" },
+    { name = "vca-worker" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "coverage" },
+    { name = "pre-commit" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "vca-api", editable = "packages/vca_api" },
+    { name = "vca-core", editable = "packages/vca_core" },
+    { name = "vca-infra", editable = "packages/vca_infra" },
+    { name = "vca-worker", editable = "packages/vca_worker" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage", specifier = ">=7.6.10" },
+    { name = "pre-commit", specifier = ">=4.1.0" },
+    { name = "pyright", specifier = ">=1.1.408" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.9.6" },
+]
+
+[[package]]
 name = "vca-worker"
 version = "0.1.0"
 source = { editable = "packages/vca_worker" }
@@ -2390,7 +2390,7 @@ dependencies = [
     { name = "faster-whisper" },
     { name = "pydantic-settings" },
     { name = "vca-core" },
-    { name = "vca-store" },
+    { name = "vca-infra" },
 ]
 
 [package.metadata]
@@ -2400,7 +2400,7 @@ requires-dist = [
     { name = "faster-whisper", specifier = ">=1.2.1" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "vca-core", editable = "packages/vca_core" },
-    { name = "vca-store", editable = "packages/vca_store" },
+    { name = "vca-infra", editable = "packages/vca_infra" },
 ]
 
 [[package]]

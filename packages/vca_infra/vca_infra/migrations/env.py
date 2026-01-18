@@ -4,7 +4,7 @@ import vca_core.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from alembic import context
 from sqlalchemy import create_engine, pool
 from sqlmodel import SQLModel
-from vca_store.settings import db_settings
+from vca_infra.settings import db_settings
 
 config = context.config
 

@@ -3,7 +3,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from vca_store.storages.local_storage import LocalStorage
+from vca_infra.storages.local_storage import LocalStorage
 
 
 class TestLocalStorage:

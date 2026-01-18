@@ -6,13 +6,13 @@ dependencies = [
     "fastapi[standard]",
     "pydantic-settings",
     "vca-core",
-    "vca-store",
+    "vca-infra",
     "vca-worker",
 ]
 
 [tool.uv.sources]
 vca-core = { workspace = true }
-vca-store = { workspace = true }
+vca-infra = { workspace = true }
 vca-worker = { workspace = true }
 
 [build-system]

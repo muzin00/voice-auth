@@ -1,6 +1,6 @@
 from vca_core.interfaces.storage import StorageProtocol
-from vca_store.settings import storage_settings
-from vca_store.storages import GCSStorage, LocalStorage
+from vca_infra.settings import storage_settings
+from vca_infra.storages import GCSStorage, LocalStorage
 
 
 def get_storage() -> StorageProtocol:

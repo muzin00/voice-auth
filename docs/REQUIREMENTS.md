@@ -112,7 +112,7 @@ numpy
 | ---------- | ------------------------------------------ |
 | vca_core   | インターフェース、モデル、ビジネスロジック |
 | vca_api    | REST API（FastAPI）                        |
-| vca_store  | DB/ストレージ実装                          |
+| vca_infra  | DB/ストレージ実装                          |
 | vca_worker | 音声処理タスク（Celery）                   |
 
 ### 処理フロー（話者登録）

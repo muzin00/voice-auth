@@ -5,13 +5,13 @@ from sqlmodel import Session
 from vca_core.interfaces.storage import StorageProtocol
 from vca_core.interfaces.worker_client import WorkerClientProtocol
 from vca_core.services.auth_service import AuthService
-from vca_store.repositories import (
+from vca_infra.repositories import (
     PassphraseRepository,
     SpeakerRepository,
     VoiceprintRepository,
     VoiceSampleRepository,
 )
-from vca_store.session import get_session
+from vca_infra.session import get_session
 
 from vca_api.dependencies.storage import get_storage
 from vca_api.dependencies.worker import get_worker_client

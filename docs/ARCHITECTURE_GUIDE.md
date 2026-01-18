@@ -33,10 +33,10 @@ vca_server/
     │       ├── middleware/     # ミドルウェア
     │       ├── exceptions/     # 例外ハンドラ
     │       └── utils/          # ユーティリティ
-    ├── vca_store/              # 永続化レイヤー
+    ├── vca_infra/              # 永続化レイヤー
     │   ├── pyproject.toml
     │   ├── tests/
-    │   └── vca_store/
+    │   └── vca_infra/
     │       ├── session.py      # DB接続
     │       ├── settings.py     # DB設定
     │       ├── repositories/   # リポジトリ実装
@@ -52,22 +52,22 @@ vca_server/
 ```
 
 - **vca_api**: FastAPIに依存。Composition Root（依存関係の組み立て）
-- **vca_store**: 永続化を担当。SQLModel/SQLAlchemy等でvca_coreのProtocolを実装
+- **vca_infra**: 永続化を担当。SQLModel/SQLAlchemy等でvca_coreのProtocolを実装
 - **vca_core**: ドメインロジックの中心。Webフレームワーク非依存
 
 ## 依存の流れ
 
 ```
-vca_api → { vca_core, vca_store }
-vca_store → vca_core
+vca_api → { vca_core, vca_infra }
+vca_infra → vca_core
 vca_core → (依存なし)
 ```
 
 ## 依存性逆転（Repository Interface パターン）
 
-vca_core の Service は、永続化の具象実装に直接依存しない。代わりに vca_core/interfaces に Protocol（インターフェース）を定義し、vca_store がその Protocol を実装する。
+vca_core の Service は、永続化の具象実装に直接依存しない。代わりに vca_core/interfaces に Protocol（インターフェース）を定義し、vca_infra がその Protocol を実装する。
 
-vca_api は Composition Root として機能し、dependencies/ で vca_store の具象実装を vca_core の Service に注入する。これにより、vca_core は永続化の詳細を知らずにビジネスロジックを実行できる。
+vca_api は Composition Root として機能し、dependencies/ で vca_infra の具象実装を vca_core の Service に注入する。これにより、vca_core は永続化の詳細を知らずにビジネスロジックを実行できる。
 
 ## テスト構成
 

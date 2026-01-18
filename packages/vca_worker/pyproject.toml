@@ -8,8 +8,12 @@ dependencies = [
     "faster-whisper>=1.2.1",
     "pydantic-settings>=2.0.0",
     "vca-core",
-    "vca-store",
+    "vca-infra",
 ]
+
+[tool.uv.sources]
+vca-core = { workspace = true }
+vca-infra = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

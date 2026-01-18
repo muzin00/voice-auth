@@ -19,7 +19,7 @@ COPY pyproject.toml uv.lock ./
 # Copy only required packages
 COPY packages/vca_worker ./packages/vca_worker
 COPY packages/vca_core ./packages/vca_core
-COPY packages/vca_store ./packages/vca_store
+COPY packages/vca_infra ./packages/vca_infra
 
 # Install dependencies (only vca-worker and its dependencies)
 RUN uv sync --frozen --package vca-worker

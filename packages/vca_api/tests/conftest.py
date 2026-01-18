@@ -9,9 +9,9 @@ from vca_api.dependencies.worker import get_worker_client
 from vca_api.main import app
 from vca_core.interfaces.worker_client import WorkerClientProtocol
 from vca_core.models import Speaker
-from vca_store.repositories import PassphraseRepository, SpeakerRepository
-from vca_store.session import get_session
-from vca_store.storages import LocalStorage
+from vca_infra.repositories import PassphraseRepository, SpeakerRepository
+from vca_infra.session import get_session
+from vca_infra.storages import LocalStorage
 
 
 class MockWorkerClient(WorkerClientProtocol):

@@ -3,7 +3,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from vca_store.storages.gcs_storage import GCSStorage
+from vca_infra.storages.gcs_storage import GCSStorage
 
 
 class TestGCSStorage:
@@ -12,7 +12,7 @@ class TestGCSStorage:
     @pytest.fixture
     def mock_storage_client(self) -> Generator[dict[str, Any], None, None]:
         """モックされたGCS Clientを作成."""
-        with patch("vca_store.storages.gcs_storage.storage") as mock_storage:
+        with patch("vca_infra.storages.gcs_storage.storage") as mock_storage:
             mock_client = Mock()
             mock_bucket = Mock()
             mock_blob = Mock()
