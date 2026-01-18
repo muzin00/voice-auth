@@ -2,6 +2,30 @@
 
 ## ローカル開発
 
+### データベース選択
+
+環境変数`DB_TYPE`でPostgreSQLまたはSQLiteを選択できます（デフォルト: SQLite）。
+
+**SQLiteを使う場合（デフォルト）:**
+
+```bash
+# .envファイル
+DB_TYPE=sqlite
+
+# 起動（dbコンテナなし、軽量）
+docker compose up -d
+```
+
+**PostgreSQLを使う場合:**
+
+```bash
+# .envファイル
+DB_TYPE=postgres
+
+# 起動（dbコンテナも起動）
+docker compose --profile postgres up -d
+```
+
 ### 起動
 
 ```bash

@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:17
     restart: always
+    profiles: ["postgres"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -41,12 +42,15 @@ services:
       db:
         condition: service_healthy
         restart: true
+        required: false
       redis:
         condition: service_healthy
     env_file:
       - .env
     environment:
       - ENVIRONMENT=development
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - SQLITE_PATH=/app/data/vca.db
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -59,6 +63,7 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      - sqlite_data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -74,12 +79,15 @@ services:
       db:
         condition: service_healthy
         restart: true
+        required: false
       redis:
         condition: service_healthy
     env_file:
       - .env
     environment:
       - ENVIRONMENT=development
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - SQLITE_PATH=/app/data/vca.db
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -91,7 +99,9 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+      - sqlite_data:/app/data
 
 volumes:
   postgres_data:
   redis_data:
+  sqlite_data:
