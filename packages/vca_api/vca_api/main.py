@@ -1,8 +1,10 @@
 import logging
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 from vca_core.exceptions import NotFoundError
+from vca_infra.model_loader import load_models
 
 from vca_api.exception_handlers import not_found_exception_handler
 from vca_api.routes.auth import router as auth_router
@@ -14,9 +16,22 @@ logging.basicConfig(
     format="%(levelname)s:     %(name)s - %(message)s",
 )
 
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """アプリケーションのライフサイクル管理."""
+    # 起動時: モデルをプリロード
+    load_models()
+    yield
+    # 終了時の処理（必要なら）
+
+
 app = FastAPI(
     title="VCA Server",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # 例外ハンドラ登録
