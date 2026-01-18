@@ -95,10 +95,10 @@ class AuthService:
         logger.info(f"VoiceSample created: {voice_sample.public_id}")
 
         # 6. 文字起こし（TODO: Phase 3で実装）
-        transcribed_text = self._transcribe_audio(audio_bytes)
+        transcribed_text = self._transcribe_audio(audio_bytes, audio_format)
 
         # 7. 声紋抽出（TODO: Phase 3で実装）
-        embedding = self._extract_voiceprint(audio_bytes)
+        embedding = self._extract_voiceprint(audio_bytes, audio_format)
 
         # 8. Passphrase をDBに保存
         passphrase = self.passphrase_repository.create(
@@ -198,7 +198,7 @@ class AuthService:
         audio_bytes = self._decode_audio_data(audio_data)
 
         # 3. 文字起こし（正規化済み）
-        transcribed_text = self._transcribe_audio(audio_bytes)
+        transcribed_text = self._transcribe_audio(audio_bytes, audio_format)
         logger.info(f"Transcribed text: {transcribed_text}")
 
         # 4. 登録済みパスフレーズを取得
@@ -237,10 +237,10 @@ class AuthService:
             message=message,
         )
 
-    def _transcribe_audio(self, audio_bytes: bytes) -> str:
+    def _transcribe_audio(self, audio_bytes: bytes, audio_format: str) -> str:
         """音声を文字起こし."""
-        return self.worker_client.transcribe(audio_bytes)
+        return self.worker_client.transcribe(audio_bytes, audio_format)
 
-    def _extract_voiceprint(self, audio_bytes: bytes) -> bytes:
+    def _extract_voiceprint(self, audio_bytes: bytes, audio_format: str) -> bytes:
         """声紋を抽出."""
-        return self.worker_client.extract_voiceprint(audio_bytes)
+        return self.worker_client.extract_voiceprint(audio_bytes, audio_format)

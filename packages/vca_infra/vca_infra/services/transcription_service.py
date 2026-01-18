@@ -3,6 +3,7 @@ import tempfile
 from typing import TYPE_CHECKING
 
 from vca_infra.settings import whisper_settings
+from vca_infra.utils.audio_converter import convert_to_wav
 
 if TYPE_CHECKING:
     from faster_whisper import WhisperModel
@@ -16,16 +17,24 @@ class TranscriptionService:
     def __init__(self, model: "WhisperModel"):
         self.model = model
 
-    def transcribe(self, audio_bytes: bytes) -> str:
+    def transcribe(self, audio_bytes: bytes, audio_format: str = "wav") -> str:
         """音声バイト列を文字起こし.
 
         Args:
-            audio_bytes: 音声データ（WAV, MP3等）
+            audio_bytes: 音声データ
+            audio_format: 音声フォーマット（wav, webm, mp3等）
 
         Returns:
             文字起こしテキスト
         """
-        logger.info(f"Transcribing audio: {len(audio_bytes)} bytes")
+        logger.info(
+            f"Transcribing audio: {len(audio_bytes)} bytes, format={audio_format}"
+        )
+
+        # WAV以外の場合は変換
+        if audio_format.lower() != "wav":
+            logger.info(f"Converting {audio_format} to WAV")
+            audio_bytes = convert_to_wav(audio_bytes, audio_format)
 
         # faster-whisperはファイルパスが必要なので一時ファイル経由
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:

@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from numpy.typing import NDArray
 
+from vca_infra.utils.audio_converter import convert_to_wav
+
 if TYPE_CHECKING:
     from wespeakerruntime import Speaker
 
@@ -30,15 +32,25 @@ class VoiceprintService:
         """
         self._speaker = speaker_model
 
-    def extract(self, audio_bytes: bytes) -> bytes:
+    def extract(self, audio_bytes: bytes, audio_format: str = "wav") -> bytes:
         """音声データから声紋を抽出.
 
         Args:
-            audio_bytes: 音声データ（WAV/MP3など）
+            audio_bytes: 音声データ
+            audio_format: 音声フォーマット（wav, webm, mp3等）
 
         Returns:
             声紋ベクトル（256次元のfloat32、1024バイト）
         """
+        logger.info(
+            f"Extracting voiceprint: {len(audio_bytes)} bytes, format={audio_format}"
+        )
+
+        # WAV以外の場合は変換
+        if audio_format.lower() != "wav":
+            logger.info(f"Converting {audio_format} to WAV")
+            audio_bytes = convert_to_wav(audio_bytes, audio_format)
+
         # 一時ファイルに書き出してWeSpeakerで処理
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
             tmp.write(audio_bytes)
