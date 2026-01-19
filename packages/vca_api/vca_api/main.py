@@ -67,6 +67,6 @@ def run_server():
         "vca_api.main:app",
         host=server_settings.HOST,
         port=server_settings.PORT,
-        reload=server_settings.reload,
-        workers=server_settings.workers,
+        workers=server_settings.WORKERS,
+        reload=server_settings.HOT_RELOAD,
     )
