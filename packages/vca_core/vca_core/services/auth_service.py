@@ -74,11 +74,11 @@ class AuthService:
         assert speaker.id is not None
 
         # 2. パスフレーズ数の上限チェック
-        passphrase_count = self.passphrase_repository.count_by_speaker_id(speaker.id)
-        if passphrase_count >= MAX_PASSPHRASES_PER_SPEAKER:
-            raise ValueError(
-                f"Maximum number of passphrases ({MAX_PASSPHRASES_PER_SPEAKER}) reached"
-            )
+        # passphrase_count = self.passphrase_repository.count_by_speaker_id(speaker.id)
+        # if passphrase_count >= MAX_PASSPHRASES_PER_SPEAKER:
+        #     raise ValueError(
+        #         f"Maximum number of passphrases ({MAX_PASSPHRASES_PER_SPEAKER}) reached"
+        #     )
 
         # 3. 音声データをデコード
         audio_bytes = self._decode_audio_data(audio_data)
