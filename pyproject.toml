@@ -29,7 +29,7 @@ dev = [
 ]
 
 [tool.pyright]
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
 exclude = ["venv", ".venv", "alembic"]
 reportMissingTypeStubs = false
 

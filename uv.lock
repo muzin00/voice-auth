@@ -1856,6 +1856,7 @@ version = "0.1.0"
 source = { editable = "packages/vca_infra" }
 dependencies = [
     { name = "alembic" },
+    { name = "av" },
     { name = "celery" },
     { name = "faster-whisper" },
     { name = "google-cloud-storage" },
@@ -1872,6 +1873,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "alembic" },
+    { name = "av", specifier = "==16.1.0" },
     { name = "celery" },
     { name = "faster-whisper", specifier = ">=1.2.1" },
     { name = "google-cloud-storage", specifier = ">=3.7.0" },

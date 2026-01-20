@@ -1,7 +1,9 @@
 """音声フォーマット変換ユーティリティ."""
 
+import io
 import logging
-import subprocess
+
+import av
 
 logger = logging.getLogger(__name__)
 
@@ -17,35 +19,41 @@ def convert_to_wav(audio_bytes: bytes, source_format: str) -> bytes:
         WAV形式の音声データ（16bit PCM, モノラル）
     """
     logger.info(f"Converting {source_format} to WAV: {len(audio_bytes)} bytes")
+    input_buffer = io.BytesIO(audio_bytes)
+    output_buffer = io.BytesIO()
 
+    # format=source_format を削除して自動判別に
     try:
-        result = subprocess.run(
-            [
-                "ffmpeg",
-                "-f",
-                source_format,  # 入力フォーマット
-                "-i",
-                "pipe:0",  # 標準入力から読み込み
-                "-ar",
-                "16000",  # サンプルレート: 16kHz
-                "-ac",
-                "1",  # チャンネル数: モノラル
-                "-sample_fmt",
-                "s16",  # サンプルフォーマット: 16bit
-                "-f",
-                "wav",  # 出力フォーマット: WAV
-                "pipe:1",  # 標準出力に書き込み
-            ],
-            input=audio_bytes,
-            capture_output=True,
-            check=True,
-        )
+        with av.open(input_buffer, mode="r") as in_container:
+            if not in_container.streams.audio:
+                raise ValueError("No audio stream found")
 
-        wav_bytes = result.stdout
-        logger.info(f"Conversion complete: {len(wav_bytes)} bytes")
-        return wav_bytes
+            with av.open(output_buffer, mode="w", format="wav") as out_container:
+                # WeSpeakerが絶対条件とする 16000Hz / モノラル を指定
+                out_stream = out_container.add_stream("pcm_s16le", rate=16000)
+                out_stream.layout = "mono"
 
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.decode() if e.stderr else "Unknown error"
-        logger.error(f"FFmpeg conversion failed: {error_msg}")
-        raise RuntimeError(f"Audio conversion failed: {error_msg}") from e
+                # リサンプラーを作成（どんな入力も 16k/モノラル/s16 に変換する）
+                resampler = av.AudioResampler(
+                    format="s16",
+                    layout="mono",
+                    rate=16000,
+                )
+
+                for frame in in_container.decode(audio=0):
+                    # 入力フレームを16kHzモノラルに変換
+                    resampled_frames = resampler.resample(frame)
+                    for f in resampled_frames:
+                        for packet in out_stream.encode(f):
+                            out_container.mux(packet)
+
+                # フラッシュ
+                for packet in out_stream.encode(None):
+                    out_container.mux(packet)
+
+        # 'with' ブロックを抜けた瞬間、WAVヘッダーが確定します
+        return output_buffer.getvalue()
+
+    except Exception as e:
+        logger.error(f"Conversion failed: {e}")
+        raise

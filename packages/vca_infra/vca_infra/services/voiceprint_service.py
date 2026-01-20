@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 import struct
 import tempfile
+import uuid
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
@@ -46,30 +48,36 @@ class VoiceprintService:
             f"Extracting voiceprint: {len(audio_bytes)} bytes, format={audio_format}"
         )
 
-        # WAV以外の場合は変換
-        if audio_format.lower() != "wav":
-            logger.info(f"Converting {audio_format} to WAV")
+        try:
+            # 内部でサンプリングレートなどの正規化も行うとより安全
             audio_bytes = convert_to_wav(audio_bytes, audio_format)
+        except Exception as e:
+            logger.error(f"Failed to convert audio to WAV: {e}")
+            raise
 
-        # 一時ファイルに書き出してWeSpeakerで処理
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
-            tmp.write(audio_bytes)
-            tmp.flush()
+        tmp_path = Path(tempfile.gettempdir()) / f"{uuid.uuid4()}.wav"
 
-            logger.info(f"Extracting voiceprint from temp file: {tmp.name}")
+        try:
+            tmp_path.write_bytes(audio_bytes)
 
-            # WeSpeakerで声紋抽出
-            embedding = cast(
-                NDArray[np.float32], self._speaker.extract_embedding(tmp.name)
-            )
+            # 抽出処理
+            raw_embedding = self._speaker.extract_embedding(str(tmp_path))
+            embedding = cast(NDArray[np.float32], raw_embedding)
 
             logger.info(
-                f"Voiceprint extracted: shape={embedding.shape}, "
+                f"Voiceprint extracted successfully: shape={embedding.shape}, "
                 f"dtype={embedding.dtype}"
             )
 
-        # numpy配列をbytesに変換（float32）
-        return self._embedding_to_bytes(embedding)
+            # 正常に抽出できた場合のみbytesに変換して返す
+            return self._embedding_to_bytes(embedding)
+
+        except Exception as e:
+            logger.error(f"Voiceprint extraction failed: {e}")
+            raise
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
 
     def _embedding_to_bytes(self, embedding: NDArray[np.float32]) -> bytes:
         """numpy配列をbytesに変換.

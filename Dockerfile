@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     libgomp1 \
     libsndfile1 \
-    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
