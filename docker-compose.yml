@@ -20,7 +20,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
     ports:
       - "5432:5432"
-
   # redis:
   #   # Celery未使用のため停止
   #   # Workerを分離してCeleryを使用する場合は、このコメントを解除
@@ -35,7 +34,6 @@ services:
   #     - redis_data:/data
   #   ports:
   #     - "6379:6379"
-
   app:
     build:
       context: .
@@ -68,41 +66,39 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # worker:
-  #   # インフラコスト削減のため、workerコンテナは停止し、appコンテナ内で直接処理を実行
-  #   # 将来的にworkerを分離する場合は、以下のコメントを解除し、
-  #   # vca_api/dependencies/worker.pyをCeleryWorkerClientに戻す
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.worker
-  #   restart: always
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #       restart: true
-  #       required: false
-  #     redis:
-  #       condition: service_healthy
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - ENVIRONMENT=development
-  #     - DB_TYPE=${DB_TYPE:-sqlite}
-  #     - SQLITE_PATH=/app/data/vca.db
-  #     - POSTGRES_SERVER=db
-  #     - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-  #     - CELERY_BROKER_URL=redis://redis:6379/0
-  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
-  #     - C_FORCE_ROOT=true
-  #   volumes:
-  #     - .:/app
-  #     - /app/.venv
-  #     - sqlite_data:/app/data
-
+      # worker:
+      #   # インフラコスト削減のため、workerコンテナは停止し、appコンテナ内で直接処理を実行
+      #   # 将来的にworkerを分離する場合は、以下のコメントを解除し、
+      #   # vca_api/dependencies/worker.pyをCeleryWorkerClientに戻す
+      #   build:
+      #     context: .
+      #     dockerfile: Dockerfile.worker
+      #   restart: always
+      #   depends_on:
+      #     db:
+      #       condition: service_healthy
+      #       restart: true
+      #       required: false
+      #     redis:
+      #       condition: service_healthy
+      #   env_file:
+      #     - .env
+      #   environment:
+      #     - ENVIRONMENT=development
+      #     - DB_TYPE=${DB_TYPE:-sqlite}
+      #     - SQLITE_PATH=/app/data/vca.db
+      #     - POSTGRES_SERVER=db
+      #     - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      #     - POSTGRES_DB=${POSTGRES_DB}
+      #     - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      #     - CELERY_BROKER_URL=redis://redis:6379/0
+      #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      #     - C_FORCE_ROOT=true
+      #   volumes:
+      #     - .:/app
+      #     - /app/.venv
+      #     - sqlite_data:/app/data
 volumes:
   postgres_data:
   # redis_data:  # Redis未使用のため無効化

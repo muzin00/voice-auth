@@ -54,11 +54,11 @@
         <!-- 音声入力セクション -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800">音声入力</h2>
-            
+
             <!-- 入力方法の選択 -->
             <div class="flex gap-4 mb-6">
                 <label class="flex items-center cursor-pointer">
-                    <input type="radio" name="input_method" value="mic" 
+                    <input type="radio" name="input_method" value="mic"
                            checked onchange="toggleInputMethod('mic')"
                            class="mr-2 w-4 h-4 text-blue-600">
                     <span class="text-gray-700">🎤 マイク入力</span>
@@ -74,8 +74,8 @@
             <!-- マイク入力UI -->
             <div id="mic-input" class="space-y-4">
                 <button id="record-btn" onclick="toggleRecording()"
-                        class="w-full bg-red-500 hover:bg-red-600 text-white 
-                               font-bold py-4 px-6 rounded-lg transition duration-200 
+                        class="w-full bg-red-500 hover:bg-red-600 text-white
+                               font-bold py-4 px-6 rounded-lg transition duration-200
                                flex items-center justify-center gap-2">
                     <span class="text-2xl">🎤</span>
                     <span>録音開始</span>
@@ -87,10 +87,10 @@
             <div id="file-input" class="hidden">
                 <input type="file" id="audio-file" accept="audio/*"
                        onchange="handleFileSelect()"
-                       class="w-full p-3 border border-gray-300 rounded-lg 
-                              file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                              file:border-0 file:text-sm file:font-semibold 
-                              file:bg-blue-50 file:text-blue-700 
+                       class="w-full p-3 border border-gray-300 rounded-lg
+                              file:mr-4 file:py-2 file:px-4 file:rounded-lg
+                              file:border-0 file:text-sm file:font-semibold
+                              file:bg-blue-50 file:text-blue-700
                               hover:file:bg-blue-100 cursor-pointer">
                 <p class="text-sm text-gray-500 mt-2">対応形式: wav, mp3, m4a, webm, ogg 等</p>
                 <div id="file-status" class="text-center text-gray-600 mt-2"></div>
@@ -100,15 +100,15 @@
         <!-- アクションボタン -->
         <div class="grid grid-cols-2 gap-4 mb-6">
             <button onclick="submitAction('register')"
-                    class="bg-blue-500 hover:bg-blue-600 text-white 
-                           font-bold py-4 px-6 rounded-lg transition duration-200 
+                    class="bg-blue-500 hover:bg-blue-600 text-white
+                           font-bold py-4 px-6 rounded-lg transition duration-200
                            flex items-center justify-center gap-2 shadow-lg">
                 <span class="text-xl">📝</span>
                 <span>登録</span>
             </button>
             <button onclick="submitAction('verify')"
-                    class="bg-green-500 hover:bg-green-600 text-white 
-                           font-bold py-4 px-6 rounded-lg transition duration-200 
+                    class="bg-green-500 hover:bg-green-600 text-white
+                           font-bold py-4 px-6 rounded-lg transition duration-200
                            flex items-center justify-center gap-2 shadow-lg">
                 <span class="text-xl">🔐</span>
                 <span>認証</span>

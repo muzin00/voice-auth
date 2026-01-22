@@ -1,6 +1,6 @@
 """共通のモデルフィールド定義."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlmodel import Field
 from ulid import ULID
@@ -23,12 +23,12 @@ def public_id_field() -> str:
 
 def created_at_field() -> datetime:
     """作成日時フィールド（UTC）."""
-    return Field(default_factory=lambda: datetime.now(timezone.utc))
+    return Field(default_factory=lambda: datetime.now(UTC))
 
 
 def updated_at_field() -> datetime:
     """更新日時フィールド（UTC）."""
     return Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column_kwargs={"onupdate": datetime.now(timezone.utc)},
+        default_factory=lambda: datetime.now(UTC),
+        sa_column_kwargs={"onupdate": datetime.now(UTC)},
     )

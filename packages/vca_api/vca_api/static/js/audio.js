@@ -5,7 +5,7 @@ let isRecording = false;
 function toggleInputMethod(method) {
     document.getElementById('mic-input').classList.toggle('hidden', method !== 'mic');
     document.getElementById('file-input').classList.toggle('hidden', method !== 'file');
-    
+
     // Clear status messages
     document.getElementById('recording-status').textContent = '';
     document.getElementById('file-status').textContent = '';
@@ -58,16 +58,16 @@ async function toggleRecording() {
 async function handleFileSelect() {
     const fileInput = document.getElementById('audio-file');
     const status = document.getElementById('file-status');
-    
+
     if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const base64 = await blobToBase64(file);
         document.getElementById('form-audio-data').value = base64;
-        
+
         // Extract file extension
         const extension = file.name.split('.').pop().toLowerCase();
         document.getElementById('form-audio-format').value = extension;
-        
+
         status.textContent = `✅ ${file.name} を選択しました`;
         status.classList.remove('text-red-600');
     }
@@ -88,23 +88,23 @@ function blobToBase64(blob) {
 async function submitAction(action) {
     const speakerId = document.getElementById('speaker-id').value.trim();
     const audioData = document.getElementById('form-audio-data').value;
-    
+
     // Validation
     if (!speakerId) {
         alert('Speaker IDを入力してください');
         return;
     }
-    
+
     if (!audioData) {
         alert('音声を録音またはファイルを選択してください');
         return;
     }
-    
+
     // フォームデータをセット
     document.getElementById('form-speaker-id').value = speakerId;
-    document.getElementById('form-speaker-name').value = 
+    document.getElementById('form-speaker-name').value =
         document.getElementById('speaker-name').value;
-    
+
     // htmxでPOST
     const form = document.getElementById('action-form');
     form.setAttribute('hx-post', `/demo/${action}`);
