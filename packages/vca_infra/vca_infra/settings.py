@@ -41,18 +41,6 @@ class StorageSettings(BaseSettings):
     GCS_PROJECT_ID: str | None = None
 
 
-class WhisperSettings(BaseSettings):
-    """Whisperモデル設定."""
-
-    WHISPER_MODEL_SIZE: str = "small"
-    WHISPER_DEVICE: str = "cpu"
-    WHISPER_COMPUTE_TYPE: str = "int8"
-    WHISPER_LANGUAGE: str = "ja"
-    WHISPER_LOCAL_FILES_ONLY: bool = True
-
-    model_config = {"env_prefix": ""}
-
-
 class SherpaOnnxSettings(BaseSettings):
     """sherpa-onnx声紋抽出設定."""
 
@@ -74,6 +62,5 @@ class VoiceprintSettings(BaseSettings):
 
 db_settings = DatabaseSettings()
 storage_settings = StorageSettings()
-whisper_settings = WhisperSettings()
 sherpa_onnx_settings = SherpaOnnxSettings()
 voiceprint_settings = VoiceprintSettings()

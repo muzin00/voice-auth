@@ -17,41 +17,22 @@
                 <span class="text-gray-900">{{ data.speaker_id }}</span>
             </div>
             <div class="flex items-start">
-                <span class="font-semibold text-gray-700 w-32">パスフレーズ:</span>
-                <span class="text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">{{ data.passphrase }}</span>
-            </div>
-            <div class="flex items-start">
                 <span class="font-semibold text-gray-700 w-32">声紋ID:</span>
                 <span class="text-gray-900 text-sm font-mono">{{ data.voiceprint_id }}</span>
             </div>
-        </div>
-        <div class="mt-4 bg-blue-50 border border-blue-200 rounded p-3">
-            <p class="text-sm text-blue-800">
-                💡 登録されたパスフレーズを覚えて、認証時に同じフレーズを発話してください
-            </p>
         </div>
     {% elif action == "認証" %}
         <!-- 認証成功時の詳細 -->
         <div class="space-y-3">
             <div class="flex items-start">
                 <span class="font-semibold text-gray-700 w-40">認証結果:</span>
-                <span class="text-green-600 font-bold">
+                <span class="{% if data.authenticated %}text-green-600{% else %}text-red-600{% endif %} font-bold">
                     {% if data.authenticated %}✅ 認証成功{% else %}❌ 認証失敗{% endif %}
                 </span>
             </div>
             <div class="flex items-start">
                 <span class="font-semibold text-gray-700 w-40">Speaker ID:</span>
                 <span class="text-gray-900">{{ data.speaker_id }}</span>
-            </div>
-            <div class="flex items-start">
-                <span class="font-semibold text-gray-700 w-40">検出されたパスフレーズ:</span>
-                <span class="text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">{{ data.detected_passphrase }}</span>
-            </div>
-            <div class="flex items-start">
-                <span class="font-semibold text-gray-700 w-40">パスフレーズ一致:</span>
-                <span class="{% if data.passphrase_match %}text-green-600{% else %}text-red-600{% endif %}">
-                    {% if data.passphrase_match %}✅ 一致{% else %}❌ 不一致{% endif %}
-                </span>
             </div>
             <div class="flex items-start">
                 <span class="font-semibold text-gray-700 w-40">声紋類似度:</span>

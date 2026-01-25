@@ -48,6 +48,4 @@ RUN mkdir -p models && \
     curl -L -o models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx \
     https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx
 
-RUN python -c "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"
-
 CMD ["python", "main.py"]

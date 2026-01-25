@@ -21,7 +21,7 @@ async def register(
     request: AuthRegisterRequest,
     auth_service: AuthService = Depends(get_auth_service),
 ) -> AuthRegisterResponse:
-    """話者登録（音声ファイル + パスフレーズ + 声紋）."""
+    """話者登録（音声ファイル + 声紋）."""
     result = auth_service.register(
         speaker_id=request.speaker_id,
         audio_data=request.audio_data,
@@ -34,7 +34,6 @@ async def register(
         speaker_name=result.speaker.speaker_name,
         voice_sample_id=result.voice_sample.public_id,
         voiceprint_id=result.voiceprint.public_id,
-        passphrase=result.passphrase.phrase,
         status="registered",
     )
 
@@ -54,8 +53,6 @@ async def verify(
     return AuthVerifyResponse(
         authenticated=result.authenticated,
         speaker_id=result.speaker_id,
-        passphrase_match=result.passphrase_match,
         voice_similarity=result.voice_similarity,
-        detected_passphrase=result.detected_passphrase,
         message=result.message,
     )

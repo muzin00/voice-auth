@@ -45,7 +45,6 @@ async def demo_register(
                 "action": "登録",
                 "data": {
                     "speaker_id": result.speaker.speaker_id,
-                    "passphrase": result.passphrase.phrase,
                     "voiceprint_id": result.voiceprint.public_id,
                 },
             },
@@ -81,8 +80,6 @@ async def demo_verify(
                 "data": {
                     "authenticated": result.authenticated,
                     "speaker_id": result.speaker_id,
-                    "detected_passphrase": result.detected_passphrase,
-                    "passphrase_match": result.passphrase_match,
                     "voice_similarity": result.voice_similarity,
                     "message": result.message,
                 },

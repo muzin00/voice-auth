@@ -7,21 +7,10 @@ from sqlmodel.pool import StaticPool
 from vca_api.dependencies.storage import get_storage
 from vca_api.main import app
 from vca_core.models import Speaker
-from vca_core.services.auth_service import (
-    TranscriptionServiceProtocol,
-    VoiceprintServiceProtocol,
-)
-from vca_infra.repositories import PassphraseRepository, SpeakerRepository
+from vca_core.services.auth_service import VoiceprintServiceProtocol
+from vca_infra.repositories import SpeakerRepository
 from vca_infra.session import get_session
 from vca_infra.storages import LocalStorage
-
-
-class MockTranscriptionService(TranscriptionServiceProtocol):
-    """テスト用のモック文字起こしサービス."""
-
-    def transcribe(self, audio_bytes: bytes, audio_format: str = "wav") -> str:
-        """モック文字起こし."""
-        return "mock_passphrase"
 
 
 class MockVoiceprintService(VoiceprintServiceProtocol):
@@ -56,12 +45,6 @@ def storage_fixture(tmp_path: Path) -> LocalStorage:
     return LocalStorage(base_path=str(tmp_path / "voices"))
 
 
-@pytest.fixture(name="transcription_service")
-def transcription_service_fixture() -> MockTranscriptionService:
-    """テスト用のモック文字起こしサービス."""
-    return MockTranscriptionService()
-
-
 @pytest.fixture(name="voiceprint_service")
 def voiceprint_service_fixture() -> MockVoiceprintService:
     """テスト用のモック声紋サービス."""
@@ -72,14 +55,12 @@ def voiceprint_service_fixture() -> MockVoiceprintService:
 def client_fixture(
     session: Session,
     storage: LocalStorage,
-    transcription_service: MockTranscriptionService,
     voiceprint_service: MockVoiceprintService,
 ):
     """テスト用クライアント（依存性オーバーライド付き）."""
     from vca_api.dependencies.auth import get_auth_service
     from vca_core.services.auth_service import AuthService
     from vca_infra.repositories import (
-        PassphraseRepository,
         SpeakerRepository,
         VoiceprintRepository,
         VoiceSampleRepository,
@@ -96,15 +77,12 @@ def client_fixture(
         speaker_repository = SpeakerRepository(session)
         voice_sample_repository = VoiceSampleRepository(session)
         voiceprint_repository = VoiceprintRepository(session)
-        passphrase_repository = PassphraseRepository(session)
 
         return AuthService(
             speaker_repository=speaker_repository,
             voice_sample_repository=voice_sample_repository,
             voiceprint_repository=voiceprint_repository,
-            passphrase_repository=passphrase_repository,
             storage=storage,
-            transcription_service=transcription_service,
             voiceprint_service=voiceprint_service,
             voice_similarity_threshold=voiceprint_settings.VOICEPRINT_SIMILARITY_THRESHOLD,
         )
@@ -123,7 +101,6 @@ def registered_speaker_fixture(session: Session) -> Speaker:
     from vca_infra.repositories import VoiceprintRepository
 
     speaker_repo = SpeakerRepository(session)
-    passphrase_repo = PassphraseRepository(session)
     voiceprint_repo = VoiceprintRepository(session)
 
     # 話者を作成
@@ -131,13 +108,6 @@ def registered_speaker_fixture(session: Session) -> Speaker:
         Speaker(speaker_id="test_speaker", speaker_name="テスト話者")
     )
     assert speaker.id is not None
-
-    # パスフレーズを登録（mock_passphraseはMockTranscriptionServiceが返す値）
-    passphrase_repo.create(
-        speaker_id=speaker.id,
-        voice_sample_id=1,  # ダミー値
-        phrase="mock_passphrase",
-    )
 
     # 声紋を登録（MockVoiceprintServiceが返すダミー声紋）
     voiceprint_repo.create(

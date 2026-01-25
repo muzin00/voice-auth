@@ -6,24 +6,13 @@ from uuid import uuid4
 
 from vca_core.constants import MAX_AUDIO_SIZE
 from vca_core.exceptions import NotFoundError
-from vca_core.interfaces.passphrase_repository import PassphraseRepositoryProtocol
 from vca_core.interfaces.speaker_repository import SpeakerRepositoryProtocol
 from vca_core.interfaces.storage import StorageProtocol
 from vca_core.interfaces.voice_sample_repository import VoiceSampleRepositoryProtocol
 from vca_core.interfaces.voiceprint_repository import VoiceprintRepositoryProtocol
-from vca_core.models import Passphrase, Speaker, Voiceprint, VoiceSample
+from vca_core.models import Speaker, Voiceprint, VoiceSample
 
 logger = logging.getLogger(__name__)
-
-MAX_PASSPHRASES_PER_SPEAKER = 3
-
-
-class TranscriptionServiceProtocol(Protocol):
-    """文字起こしサービスのプロトコル."""
-
-    def transcribe(self, audio_bytes: bytes, audio_format: str = "wav") -> str:
-        """音声を文字起こし."""
-        ...
 
 
 class VoiceprintServiceProtocol(Protocol):
@@ -45,7 +34,6 @@ class AuthRegisterResult:
     speaker: Speaker
     voice_sample: VoiceSample
     voiceprint: Voiceprint
-    passphrase: Passphrase
 
 
 @dataclass
@@ -54,9 +42,7 @@ class AuthVerifyResult:
 
     authenticated: bool
     speaker_id: str
-    passphrase_match: bool
     voice_similarity: float
-    detected_passphrase: str
     message: str
 
 
@@ -66,18 +52,14 @@ class AuthService:
         speaker_repository: SpeakerRepositoryProtocol,
         voice_sample_repository: VoiceSampleRepositoryProtocol,
         voiceprint_repository: VoiceprintRepositoryProtocol,
-        passphrase_repository: PassphraseRepositoryProtocol,
         storage: StorageProtocol,
-        transcription_service: TranscriptionServiceProtocol,
         voiceprint_service: VoiceprintServiceProtocol,
         voice_similarity_threshold: float,
     ):
         self.speaker_repository = speaker_repository
         self.voice_sample_repository = voice_sample_repository
         self.voiceprint_repository = voiceprint_repository
-        self.passphrase_repository = passphrase_repository
         self.storage = storage
-        self.transcription_service = transcription_service
         self.voiceprint_service = voiceprint_service
         self.voice_similarity_threshold = voice_similarity_threshold
 
@@ -88,29 +70,22 @@ class AuthService:
         audio_format: str,
         speaker_name: str | None = None,
     ) -> AuthRegisterResult:
-        """話者登録（音声ファイル + パスフレーズ + 声紋）."""
+        """話者登録（音声ファイル + 声紋）."""
         logger.info(f"Registering speaker: {speaker_id}")
 
         # 1. Speaker を登録または取得
         speaker = self._get_or_create_speaker(speaker_id, speaker_name)
         assert speaker.id is not None
 
-        # 2. パスフレーズ数の上限チェック
-        # passphrase_count = self.passphrase_repository.count_by_speaker_id(speaker.id)
-        # if passphrase_count >= MAX_PASSPHRASES_PER_SPEAKER:
-        #     raise ValueError(
-        #         f"Maximum number of passphrases ({MAX_PASSPHRASES_PER_SPEAKER}) reached"
-        #     )
-
-        # 3. 音声データをデコード
+        # 2. 音声データをデコード
         audio_bytes = self._decode_audio_data(audio_data)
 
-        # 4. 音声ファイルをストレージに保存
+        # 3. 音声ファイルをストレージに保存
         storage_path = self._save_audio_to_storage(
             speaker.id, audio_bytes, audio_format
         )
 
-        # 5. VoiceSample をDBに保存
+        # 4. VoiceSample をDBに保存
         voice_sample = self.voice_sample_repository.create(
             speaker_id=speaker.id,
             audio_file_path=storage_path,
@@ -119,21 +94,10 @@ class AuthService:
         assert voice_sample.id is not None
         logger.info(f"VoiceSample created: {voice_sample.public_id}")
 
-        # 6. 文字起こし
-        detected_passphrase = self._transcribe_audio(audio_bytes, audio_format)
-
-        # 7. 声紋抽出
+        # 5. 声紋抽出
         embedding = self._extract_voiceprint(audio_bytes, audio_format)
 
-        # 8. Passphrase をDBに保存
-        passphrase = self.passphrase_repository.create(
-            speaker_id=speaker.id,
-            voice_sample_id=voice_sample.id,
-            phrase=detected_passphrase,
-        )
-        logger.info(f"Passphrase created: {passphrase.public_id}")
-
-        # 9. Voiceprint をDBに保存
+        # 6. Voiceprint をDBに保存
         voiceprint = self.voiceprint_repository.create(
             speaker_id=speaker.id,
             voice_sample_id=voice_sample.id,
@@ -145,7 +109,6 @@ class AuthService:
             speaker=speaker,
             voice_sample=voice_sample,
             voiceprint=voiceprint,
-            passphrase=passphrase,
         )
 
     def _get_or_create_speaker(
@@ -222,67 +185,40 @@ class AuthService:
         # 2. 音声データをデコード
         audio_bytes = self._decode_audio_data(audio_data)
 
-        # 3. 文字起こし（正規化済み）
-        detected_passphrase = self._transcribe_audio(audio_bytes, audio_format)
-        logger.info(f"Detected passphrase: {detected_passphrase}")
+        # 3. 声紋抽出
+        input_embedding = self._extract_voiceprint(audio_bytes, audio_format)
 
-        # 4. 登録済みパスフレーズを取得
-        passphrases = self.passphrase_repository.get_by_speaker_id(speaker.id)
-        if not passphrases:
+        # 4. 登録済み声紋を取得して比較
+        voiceprints = self.voiceprint_repository.get_by_speaker_id(speaker.id)
+        if not voiceprints:
             return AuthVerifyResult(
                 authenticated=False,
                 speaker_id=speaker_id,
-                passphrase_match=False,
                 voice_similarity=0.0,
-                detected_passphrase=detected_passphrase,
-                message="パスフレーズが登録されていません",
+                message="声紋が登録されていません",
             )
 
-        # 5. パスフレーズ照合（完全一致）
-        registered_phrases = [p.phrase for p in passphrases]
-        passphrase_match = detected_passphrase in registered_phrases
-        logger.info(f"Passphrase match: {passphrase_match}")
-
-        # 6. 声紋抽出
-        input_embedding = self._extract_voiceprint(audio_bytes, audio_format)
-
-        # 7. 登録済み声紋を取得して比較
-        voiceprints = self.voiceprint_repository.get_by_speaker_id(speaker.id)
-        voice_similarity = 0.0
-        if voiceprints:
-            similarities = [
-                self.voiceprint_service.compare(input_embedding, vp.embedding)
-                for vp in voiceprints
-            ]
-            voice_similarity = max(similarities)  # 最も高い類似度を採用
+        similarities = [
+            self.voiceprint_service.compare(input_embedding, vp.embedding)
+            for vp in voiceprints
+        ]
+        voice_similarity = max(similarities)  # 最も高い類似度を採用
         logger.info(f"Voice similarity: {voice_similarity:.4f}")
 
-        # 8. 認証判定（パスフレーズ + 声紋の両方が必要）
-        voice_match = voice_similarity >= self.voice_similarity_threshold
-        authenticated = passphrase_match and voice_match
+        # 5. 認証判定（声紋類似度がしきい値以上）
+        authenticated = voice_similarity >= self.voice_similarity_threshold
 
         if authenticated:
             message = "認証成功"
-        elif not passphrase_match:
-            message = "認証失敗: パスフレーズが一致しません"
         else:
             message = f"認証失敗: 声紋が一致しません（類似度: {voice_similarity:.2f}）"
 
         return AuthVerifyResult(
             authenticated=authenticated,
             speaker_id=speaker_id,
-            passphrase_match=passphrase_match,
             voice_similarity=voice_similarity,
-            detected_passphrase=detected_passphrase,
             message=message,
         )
-
-    def _transcribe_audio(self, audio_bytes: bytes, audio_format: str) -> str:
-        """音声を文字起こし."""
-        from vca_core.utils import normalize_text
-
-        text = self.transcription_service.transcribe(audio_bytes, audio_format)
-        return normalize_text(text)
 
     def _extract_voiceprint(self, audio_bytes: bytes, audio_format: str) -> bytes:
         """声紋を抽出."""

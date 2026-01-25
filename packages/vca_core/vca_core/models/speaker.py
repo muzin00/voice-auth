@@ -6,7 +6,6 @@ from sqlmodel import Field, Relationship, SQLModel
 from vca_core.shared import model_fields
 
 if TYPE_CHECKING:
-    from vca_core.models.passphrase import Passphrase
     from vca_core.models.voice_sample import VoiceSample
     from vca_core.models.voiceprint import Voiceprint
 
@@ -26,4 +25,3 @@ class Speaker(SQLModel, table=True):
     # Relationships
     voice_samples: list["VoiceSample"] = Relationship(back_populates="speaker")
     voiceprints: list["Voiceprint"] = Relationship(back_populates="speaker")
-    passphrases: list["Passphrase"] = Relationship(back_populates="speaker")

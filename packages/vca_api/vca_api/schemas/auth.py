@@ -34,7 +34,6 @@ class AuthRegisterResponse(BaseModel):
     speaker_name: str | None = Field(None, description="話者名")
     voice_sample_id: str = Field(..., description="音声サンプルID")
     voiceprint_id: str = Field(..., description="声紋ID")
-    passphrase: str = Field(..., description="抽出されたパスフレーズ")
     status: str = Field(..., description="登録ステータス")
 
 
@@ -64,7 +63,5 @@ class AuthVerifyResponse(BaseModel):
 
     authenticated: bool = Field(..., description="認証成功フラグ")
     speaker_id: str = Field(..., description="話者ID")
-    passphrase_match: bool = Field(..., description="パスフレーズ一致フラグ")
     voice_similarity: float = Field(..., description="声紋類似度（0.0〜1.0）")
-    detected_passphrase: str = Field(..., description="音声から検出されたパスフレーズ")
     message: str = Field(..., description="認証結果メッセージ")

@@ -9,7 +9,6 @@ dependencies = [
     "pydantic-settings",
     "vca-core",
     "google-cloud-storage>=3.7.0",
-    "faster-whisper>=1.2.1",
     "sherpa-onnx>=1.12.23",
     "sherpa-onnx-bin>=1.12.23",
     "soundfile==0.13.1",

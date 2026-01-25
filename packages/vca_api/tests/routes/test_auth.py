@@ -21,7 +21,6 @@ class TestAuthRegister:
         assert data["speaker_name"] == "山田太郎"
         assert "voice_sample_id" in data
         assert "voiceprint_id" in data
-        assert "passphrase" in data
         assert data["status"] == "registered"
 
     def test_register_speaker_without_name(self, client: TestClient):
@@ -105,7 +104,7 @@ class TestAuthVerify:
     def test_verify_speaker_success(
         self, client: TestClient, registered_speaker: Speaker
     ):
-        """認証成功: パスフレーズ一致."""
+        """認証成功: 声紋一致."""
         request_data = {
             "speaker_id": registered_speaker.speaker_id,
             "audio_data": "SGVsbG8gV29ybGQh",
@@ -117,10 +116,7 @@ class TestAuthVerify:
         data = response.json()
         assert data["speaker_id"] == registered_speaker.speaker_id
         assert data["authenticated"] is True
-        assert data["passphrase_match"] is True
         assert "voice_similarity" in data
-        assert "detected_passphrase" in data
-        assert data["detected_passphrase"] == "mock_passphrase"
         assert "message" in data
 
     def test_verify_speaker_with_audio_format(
@@ -139,7 +135,6 @@ class TestAuthVerify:
         data = response.json()
         assert data["speaker_id"] == registered_speaker.speaker_id
         assert data["authenticated"] is True
-        assert data["detected_passphrase"] == "mock_passphrase"
 
     def test_verify_speaker_not_found(self, client: TestClient):
         """存在しない話者でエラー."""
