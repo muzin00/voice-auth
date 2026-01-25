@@ -33,7 +33,7 @@
 | タスクキュー         | Celery         |
 | メッセージブローカー | Redis          |
 | 文字起こし           | faster-whisper |
-| 声紋抽出             | WeSpeaker      |
+| 声紋抽出             | sherpa-onnx (CAM++) |
 | データベース         | PostgreSQL     |
 | ストレージ           | GCS / ローカル |
 | 処理方式             | 同期処理       |
@@ -49,8 +49,8 @@
 └──────────────────────────────────────┘
        ↓
 ┌──────────────────────────────────────┐
-│  2. 声紋抽出（WeSpeaker）             │
-│     → 256次元特徴量ベクトル生成      │
+│  2. 声紋抽出（sherpa-onnx CAM++）     │
+│     → 192次元特徴量ベクトル生成      │
 └──────────────────────────────────────┘
        ↓
 ┌──────────────────────────────────────┐
@@ -69,7 +69,7 @@
 | FR-1 | 話者登録       | speaker_id、パスフレーズ、声紋を登録   |
 | FR-2 | 文字起こし     | faster-whisperで音声→テキスト変換      |
 | FR-3 | テキスト正規化 | 小文字化、句読点除去、空白正規化       |
-| FR-4 | 声紋抽出       | WeSpeakerで256次元ベクトル抽出         |
+| FR-4 | 声紋抽出       | sherpa-onnx (CAM++) で192次元ベクトル抽出 |
 | FR-5 | 声紋照合       | コサイン類似度でしきい値判定           |
 | FR-6 | 認証判定       | パスフレーズ一致 AND 声紋OK で成功     |
 | FR-7 | 話者識別       | 登録済み話者から最も類似する話者を特定 |
@@ -79,7 +79,8 @@
 
 ```
 faster-whisper
-wespeakerruntime
+sherpa-onnx
+soundfile
 numpy
 ```
 
@@ -103,7 +104,7 @@ numpy
 | コンテナ   | 役割                 | 主要パッケージ                    |
 | ---------- | -------------------- | --------------------------------- |
 | vca_api    | REST API             | FastAPI                           |
-| vca_worker | 音声処理ワーカー     | Celery, faster-whisper, WeSpeaker |
+| vca_worker | 音声処理ワーカー     | Celery, faster-whisper, sherpa-onnx |
 | Redis      | メッセージブローカー | -                                 |
 | PostgreSQL | データベース         | -                                 |
 
@@ -159,7 +160,7 @@ numpy
 | タスク名           | 入力        | 出力                      | 説明                       |
 | ------------------ | ----------- | ------------------------- | -------------------------- |
 | transcribe         | audio_bytes | str（文字起こしテキスト） | faster-whisperで文字起こし |
-| extract_voiceprint | audio_bytes | bytes（256次元ベクトル）  | WeSpeakerで声紋抽出        |
+| extract_voiceprint | audio_bytes | bytes（192次元ベクトル）  | sherpa-onnxで声紋抽出      |
 
 ### vca_worker 構成
 
@@ -220,7 +221,7 @@ Speaker (1) ←─────────── (N) VoiceSample
 | public_id       | str      | 公開ID                  |
 | speaker_id      | int      | FK to Speaker           |
 | voice_sample_id | int      | FK to VoiceSample       |
-| embedding       | bytes    | 声紋ベクトル（256次元） |
+| embedding       | bytes    | 声紋ベクトル（192次元） |
 | created_at      | datetime | 登録日時                |
 
 ### Passphrase
@@ -436,25 +437,42 @@ def normalize_text(text: str) -> str:
 
 ## 声紋照合の詳細
 
-### WeSpeaker
+### sherpa-onnx (CAM++)
 
-- **モデル**: ResNet34（VoxCeleb/CNCelebで事前学習済み）
-- **出力**: 256次元の特徴量ベクトル
+- **モデル**: CAM++ (`3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx`)
+- **出力**: 192次元の特徴量ベクトル
 - **類似度計算**: コサイン類似度
-- **しきい値**: 0.5（調整可能）
-- **GitHub**: https://github.com/wenet-e2e/wespeaker
+- **しきい値**: 0.4（調整可能）
+- **モデル配布**: Dockerイメージに含める
+- **参考リンク**:
+  - [HuggingFace: csukuangfj/speaker-embedding-models](https://huggingface.co/csukuangfj/speaker-embedding-models/tree/main)
+  - [3D-Speaker (CAM++)](https://github.com/modelscope/3D-Speaker)
+  - [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
 
 ```python
-import wespeakerruntime as wespeaker
-import numpy as np
+import sherpa_onnx
+import soundfile as sf
 
-# モデルのロード（言語: 'en' or 'chs'）
-speaker = wespeaker.Speaker(lang='en')
+# コンフィグの設定
+config = sherpa_onnx.SpeakerEmbeddingExtractorConfig(
+    model="/path/to/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx",
+    num_threads=1,
+    debug=False
+)
+
+# エクストラクタの初期化
+extractor = sherpa_onnx.SpeakerEmbeddingExtractor(config)
+
+# 音声の読み込み
+samples, sample_rate = sf.read("audio.wav")
 
 # 声紋抽出
-embedding = speaker.extract_embedding('audio.wav')  # shape: (256,)
+stream = extractor.create_stream()
+stream.accept_waveforms(sample_rate, samples)
+embedding = extractor.compute(stream)  # shape: (192,)
 
-# 類似度計算
-score = speaker.compute_cosine_score(embedding1, embedding2)
-is_same_speaker = score >= 0.5
+# 類似度計算（コサイン類似度）
+import numpy as np
+score = np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
+is_same_speaker = score >= 0.4
 ```
