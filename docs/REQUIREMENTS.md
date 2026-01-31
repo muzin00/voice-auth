@@ -30,7 +30,6 @@
 | 音声認識 (ASR)       | sherpa-onnx (Paraformer)    |
 | 声紋抽出 (SV)        | sherpa-onnx (CAM++)         |
 | データベース         | PostgreSQL / SQLite         |
-| ストレージ           | GCS / ローカル              |
 | 処理方式             | 同期処理                    |
 | ハードウェア要件     | CPU（AVX命令セット対応推奨）|
 
@@ -179,6 +178,53 @@ numpy
 | レスポンス | 数秒以内                     |
 | 対応言語   | 日本語                       |
 
+## セキュリティ要件：音声データの取り扱い
+
+### 基本方針
+
+**本番運用では音声ファイル（WAV等）の保存は禁止。ベクトル（数値データ）のみ保存する。**
+
+これは現代の生体認証システムの鉄則である。
+
+### 音声ファイルを保存してはいけない理由
+
+| リスク | 説明 |
+|--------|------|
+| 生体情報の不可逆性 | パスワードは変更できるが、漏洩した声は「変更」できない。一生涯なりすましリスクに晒される |
+| ディープフェイクの素材 | 「0〜9のクリアな音声」はAI音声合成の最高級素材。攻撃者に詐欺の材料を提供することになる |
+| パスワードハッシュと同じ | 音声ファイル＝平文パスワード（危険）、ベクトル＝ハッシュ（元の声には戻せないため安全） |
+
+### データ処理ライフサイクル
+
+```python
+def register_voice(user_id, audio_data):
+    # 1. 音声からベクトルを抽出
+    vector = extract_vector(audio_data)
+
+    # 2. ベクトルのみをDBに保存
+    save_vector_to_db(user_id, vector)
+
+    # 3. 生の音声データは明示的に破棄
+    del audio_data
+    # 一時ファイルがあれば必ず削除
+    if os.path.exists("temp.wav"):
+        os.remove("temp.wav")
+```
+
+### 例外：保存が許可されるケース
+
+**開発中のデバッグ・精度チューニング期間のみ**
+
+| ケース | ルール |
+|--------|--------|
+| 開発テスト | 開発者自身の声でテスト中は保存OK |
+| 本番運用 | 「ログ保存機能：OFF」に設定 |
+| 本番ログ必要時 | ユーザー規約に明記 + 24時間以内の自動削除を実装 |
+
+### セキュリティ上の利点
+
+万が一ハッキングされても、流出するのは「謎の数字の羅列（ベクトル）」だけであり、ユーザーの声そのものは守られる。
+
 ---
 
 # 設計
@@ -198,7 +244,7 @@ numpy
 | ---------- | ------------------------------------------ |
 | vca_core   | インターフェース、モデル、ビジネスロジック |
 | vca_api    | REST API（FastAPI）、デモ画面              |
-| vca_infra  | DB/ストレージ実装                          |
+| vca_infra  | DB実装                                     |
 
 ### 処理フロー（話者登録）
 
@@ -209,10 +255,11 @@ numpy
 ┌─────────────────────────────────────────────────────────┐
 │  vca_api（APIコンテナ）                                  │
 │  1. リクエスト受信                                       │
-│  2. 音声データをストレージに保存                         │
-│  3. 声紋抽出（sherpa-onnx）                              │
-│  4. VoiceprintをDBに保存                                 │
-│  5. レスポンス返却                                       │
+│  2. VAD検出 → ASR検証 → セグメンテーション              │
+│  3. 声紋抽出（sherpa-onnx CAM++）                        │
+│  4. DigitVoiceprintをDBに保存                            │
+│  5. 音声データを即座に破棄（※保存しない）               │
+│  6. レスポンス返却                                       │
 └─────────────────────────────────────────────────────────┘
     │
     ▼
@@ -222,12 +269,12 @@ numpy
 ## データモデル
 
 ```
-Speaker (1) ←─────────── (N) VoiceSample
-   ↑                            ↑
-   └── (N) DigitVoiceprint ─────┘
-              │
-              └── digit: "0"〜"9"
+Speaker (1) ←── (N) DigitVoiceprint
+                       │
+                       └── digit: "0"〜"9"
 ```
+
+※ 音声ファイル（WAV等）は保存しない。ベクトルのみ保存。
 
 ### Speaker
 
@@ -241,32 +288,18 @@ Speaker (1) ←─────────── (N) VoiceSample
 | created_at   | datetime    | 作成日時                          |
 | updated_at   | datetime    | 更新日時                          |
 
-### VoiceSample
-
-| フィールド      | 型          | 説明               |
-| --------------- | ----------- | ------------------ |
-| id              | int         | PK                 |
-| public_id       | str         | 公開ID             |
-| speaker_id      | int         | FK to Speaker      |
-| audio_file_path | str         | 音声ファイルパス   |
-| audio_format    | str         | 音声フォーマット   |
-| sample_rate     | int \| None | サンプリングレート |
-| channels        | int \| None | チャンネル数       |
-| created_at      | datetime    | 作成日時           |
-
 ### DigitVoiceprint
 
 数字ごとの声紋ベクトルを保存する。1ユーザーにつき10個（0〜9）のレコードを持つ。
 
-| フィールド      | 型       | 説明                           |
-| --------------- | -------- | ------------------------------ |
-| id              | int      | PK                             |
-| public_id       | str      | 公開ID                         |
-| speaker_id      | int      | FK to Speaker                  |
-| voice_sample_id | int      | FK to VoiceSample              |
-| digit           | str      | 数字（"0"〜"9"）               |
-| embedding       | bytes    | 声紋ベクトル（192次元）        |
-| created_at      | datetime | 登録日時                       |
+| フィールド  | 型       | 説明                    |
+| ----------- | -------- | ----------------------- |
+| id          | int      | PK                      |
+| public_id   | str      | 公開ID                  |
+| speaker_id  | int      | FK to Speaker           |
+| digit       | str      | 数字（"0"〜"9"）        |
+| embedding   | bytes    | 声紋ベクトル（192次元） |
+| created_at  | datetime | 登録日時                |
 
 **ユニーク制約:** (speaker_id, digit) の組み合わせでユニーク
 
