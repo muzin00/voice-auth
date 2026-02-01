@@ -40,8 +40,10 @@ def create_app() -> FastAPI:
 
     # Import and include routers
     from .websocket.enrollment import router as enrollment_router
+    from .websocket.verify import router as verify_router
 
     app.include_router(enrollment_router)
+    app.include_router(verify_router)
 
     return app
 

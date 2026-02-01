@@ -12,6 +12,12 @@ from .prompt_generator import (
     generate_enrollment_prompts,
     generate_verification_prompt,
 )
+from .verify_service import (
+    VerifyResult,
+    VerifyService,
+    VerifySession,
+    VerifyState,
+)
 
 __all__ = [
     "ASRResultInfo",
@@ -20,6 +26,10 @@ __all__ = [
     "EnrollmentSession",
     "EnrollmentState",
     "PromptGenerator",
+    "VerifyResult",
+    "VerifyService",
+    "VerifySession",
+    "VerifyState",
     "generate_enrollment_prompts",
     "generate_verification_prompt",
 ]
