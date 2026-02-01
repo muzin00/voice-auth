@@ -242,13 +242,7 @@ def register_voice(user_id, audio_data):
 | vca_api    | REST API     | FastAPI, sherpa-onnx |
 | PostgreSQL | データベース | -                    |
 
-### パッケージ構成
-
-| パッケージ | 役割                                       |
-| ---------- | ------------------------------------------ |
-| vca_core   | インターフェース、モデル、ビジネスロジック |
-| vca_api    | REST API（FastAPI）、デモ画面              |
-| vca_infra  | DB実装                                     |
+> **Note:** ディレクトリ構成・各パッケージの役割については [ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md) を参照してください。
 
 ### 処理フロー（話者登録）
 
@@ -754,25 +748,6 @@ WebSocket接続で1:N識別を処理する。
 | GET      | `/demo/`         | デモ画面表示             |
 
 ※ 登録・認証はWebSocket（`/ws/enrollment`, `/ws/verify`）を使用
-
-### ファイル構成
-
-```
-packages/vca_api/vca_api/
-├── templates/
-│   └── demo/
-│       └── index.html           # メイン画面
-├── static/
-│   └── js/
-│       ├── audio.js             # マイク録音・ファイル処理
-│       └── websocket.js         # WebSocket通信処理
-└── routes/
-    ├── ws_enrollment.py         # 登録用WebSocket
-    ├── ws_verify.py             # 認証用WebSocket
-    ├── ws_identify.py           # 識別用WebSocket
-    ├── auth.py                  # REST API（プロンプト生成）
-    └── demo.py                  # デモ画面ルーティング
-```
 
 ### 注意事項
 
