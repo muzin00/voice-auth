@@ -21,7 +21,7 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 | Phase 2 | 音声処理パイプライン | **完了** |
 | Phase 3 | データモデル刷新 | **完了** |
 | Phase 4 | 登録フロー | **完了** |
-| Phase 5 | 認証フロー | 未着手 |
+| Phase 5 | 認証フロー | **完了** |
 | Phase 6 | デモUI | 未着手 |
 
 ---
@@ -176,19 +176,19 @@ WebSocket `/ws/verify`エンドポイントとPIN認証フォールバックを�
 
 ### タスク
 
-- [ ] WebSocketエンドポイント作成
-- [ ] 認証フロー状態管理
-- [ ] プロンプト生成・送信
-- [ ] ASR検証
-- [ ] 声紋照合（数字ごとのスコア計算）
-- [ ] PIN認証フォールバック
-- [ ] 結合テスト作成
+- [x] WebSocketエンドポイント作成
+- [x] 認証フロー状態管理
+- [x] プロンプト生成・送信
+- [x] ASR検証
+- [x] 声紋照合（数字ごとのスコア計算）
+- [x] PIN認証フォールバック
+- [x] 単体テスト作成
 
 ### 成果物
 - `vca_api`パッケージ
-  - `websocket/verify.py`
+  - `websocket/verify.py` - 認証WebSocketエンドポイント
 - `vca_auth`パッケージ
-  - `services/verify_service.py`
+  - `services/verify_service.py` - 認証サービス
 
 ---
 
@@ -242,3 +242,4 @@ htmx + WebSocketによる新規デモUIを作成する。
 | 2025-02-01 | Phase 2 完了（vca_engineパッケージ実装完了） |
 | 2025-02-02 | Phase 3 完了（vca_authパッケージ実装完了） |
 | 2025-02-02 | Phase 4 完了（登録フロー実装完了） |
+| 2025-02-02 | Phase 5 完了（認証フロー実装完了） |
