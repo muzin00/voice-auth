@@ -34,9 +34,27 @@ docker compose up -d
 
 ### テスト実行
 
+**テスト専用コンテナを使用（推奨）:**
+
+```bash
+# テストイメージをビルド
+docker compose --profile test build test
+
+# 全パッケージのテストを実行
+docker compose --profile test run --rm test
+
+# 特定パッケージのテストを実行
+docker compose --profile test run --rm test uv run pytest packages/vca_engine/tests/ -v
+
+# 特定ファイルのテストを実行
+docker compose --profile test run --rm test uv run pytest packages/vca_api/tests/routes/test_auth.py -v
+```
+
+**起動中のappコンテナでテストを実行:**
+
 ```bash
 # 全テスト
-docker compose exec app sh -c "uv sync && uv run pytest"
+docker compose exec app sh -c "uv sync && uv run pytest packages/ -v"
 
 # 特定パッケージのテスト
 docker compose exec app sh -c "uv sync && uv run pytest packages/vca_api/tests/ -v"
