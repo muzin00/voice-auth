@@ -18,7 +18,7 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 |---------|------|------------|
 | Phase 0 | 既存コード削除 | **完了** |
 | Phase 1 | SenseVoice調査・検証 | **完了** |
-| Phase 2 | 音声処理パイプライン | 未着手 |
+| Phase 2 | 音声処理パイプライン | **完了** |
 | Phase 3 | データモデル刷新 | 未着手 |
 | Phase 4 | 登録フロー | 未着手 |
 | Phase 5 | 認証フロー | 未着手 |
@@ -99,20 +99,24 @@ VAD + ASR + セグメンテーションの基盤を構築する。
 
 ### タスク
 
-- [ ] Silero VAD実装
-- [ ] SenseVoice ASR実装（タイムスタンプ付き）
-- [ ] 音声セグメンテーション実装
-- [ ] CAM++声紋抽出実装（192次元）
-- [ ] PyAV音声変換（webm → wav）
-- [ ] 単体テスト作成
+- [x] Silero VAD実装
+- [x] SenseVoice ASR実装（タイムスタンプ付き）
+- [x] 音声セグメンテーション実装
+- [x] CAM++声紋抽出実装（512次元）
+- [x] PyAV音声変換（webm → pcm）
+- [x] 単体テスト作成
 
 ### 成果物
 - `vca_engine`パッケージ
-  - `vad.py` - VAD処理
-  - `asr.py` - ASR処理
-  - `speaker.py` - 声紋抽出
+  - `vad.py` - VAD処理（Silero VAD）
+  - `asr.py` - ASR処理（SenseVoice）
+  - `voiceprint.py` - 声紋抽出（CAM++）
   - `segmentation.py` - 音声分割
-  - `converter.py` - フォーマット変換
+  - `audio_converter.py` - フォーマット変換（PyAV）
+  - `audio_processor.py` - 処理パイプラインのファサード
+  - `model_loader.py` - モデルのシングルトン管理
+  - `settings.py` - 設定管理
+  - `exceptions.py` - カスタム例外
 
 ---
 
@@ -232,3 +236,4 @@ htmx + WebSocketによる新規デモUIを作成する。
 | 2025-02-01 | 未決定事項を全て決定、REQUIREMENTS.mdに反映 |
 | 2025-02-01 | Phase 0 完了 |
 | 2025-02-01 | Phase 1 完了（SenseVoice動作確認成功） |
+| 2025-02-01 | Phase 2 完了（vca_engineパッケージ実装完了） |
