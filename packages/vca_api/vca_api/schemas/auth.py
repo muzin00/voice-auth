@@ -32,7 +32,6 @@ class AuthRegisterResponse(BaseModel):
 
     speaker_id: str = Field(..., description="話者ID")
     speaker_name: str | None = Field(None, description="話者名")
-    voice_sample_id: str = Field(..., description="音声サンプルID")
     voiceprint_id: str = Field(..., description="声紋ID")
     status: str = Field(..., description="登録ステータス")
 

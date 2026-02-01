@@ -7,7 +7,6 @@ from vca_core.shared import model_fields
 
 if TYPE_CHECKING:
     from vca_core.models.speaker import Speaker
-    from vca_core.models.voice_sample import VoiceSample
 
 
 class Voiceprint(SQLModel, table=True):
@@ -20,9 +19,7 @@ class Voiceprint(SQLModel, table=True):
     created_at: datetime = model_fields.created_at_field()
     updated_at: datetime = model_fields.updated_at_field()
     speaker_id: int = Field(foreign_key="speaker.id", index=True)
-    voice_sample_id: int = Field(foreign_key="voice_sample.id", index=True)
     embedding: bytes = Field(description="声紋ベクトル（256次元）")
 
     # Relationships
     speaker: "Speaker" = Relationship(back_populates="voiceprints")
-    voice_sample: "VoiceSample" = Relationship(back_populates="voiceprint")

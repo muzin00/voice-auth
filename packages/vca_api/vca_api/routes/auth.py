@@ -32,7 +32,6 @@ async def register(
     return AuthRegisterResponse(
         speaker_id=result.speaker.speaker_id,
         speaker_name=result.speaker.speaker_name,
-        voice_sample_id=result.voice_sample.public_id,
         voiceprint_id=result.voiceprint.public_id,
         status="registered",
     )

@@ -9,12 +9,10 @@ class VoiceprintRepository:
     def create(
         self,
         speaker_id: int,
-        voice_sample_id: int,
         embedding: bytes,
     ) -> Voiceprint:
         voiceprint = Voiceprint(
             speaker_id=speaker_id,
-            voice_sample_id=voice_sample_id,
             embedding=embedding,
         )
         self.session.add(voiceprint)

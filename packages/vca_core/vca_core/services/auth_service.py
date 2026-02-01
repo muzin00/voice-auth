@@ -2,15 +2,12 @@ import base64
 import logging
 from dataclasses import dataclass
 from typing import Protocol
-from uuid import uuid4
 
 from vca_core.constants import MAX_AUDIO_SIZE
 from vca_core.exceptions import NotFoundError
 from vca_core.interfaces.speaker_repository import SpeakerRepositoryProtocol
-from vca_core.interfaces.storage import StorageProtocol
-from vca_core.interfaces.voice_sample_repository import VoiceSampleRepositoryProtocol
 from vca_core.interfaces.voiceprint_repository import VoiceprintRepositoryProtocol
-from vca_core.models import Speaker, Voiceprint, VoiceSample
+from vca_core.models import Speaker, Voiceprint
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,6 @@ class AuthRegisterResult:
     """認証登録結果."""
 
     speaker: Speaker
-    voice_sample: VoiceSample
     voiceprint: Voiceprint
 
 
@@ -50,16 +46,12 @@ class AuthService:
     def __init__(
         self,
         speaker_repository: SpeakerRepositoryProtocol,
-        voice_sample_repository: VoiceSampleRepositoryProtocol,
         voiceprint_repository: VoiceprintRepositoryProtocol,
-        storage: StorageProtocol,
         voiceprint_service: VoiceprintServiceProtocol,
         voice_similarity_threshold: float,
     ):
         self.speaker_repository = speaker_repository
-        self.voice_sample_repository = voice_sample_repository
         self.voiceprint_repository = voiceprint_repository
-        self.storage = storage
         self.voiceprint_service = voiceprint_service
         self.voice_similarity_threshold = voice_similarity_threshold
 
@@ -70,7 +62,7 @@ class AuthService:
         audio_format: str,
         speaker_name: str | None = None,
     ) -> AuthRegisterResult:
-        """話者登録（音声ファイル + 声紋）."""
+        """話者登録（声紋のみ）."""
         logger.info(f"Registering speaker: {speaker_id}")
 
         # 1. Speaker を登録または取得
@@ -80,34 +72,18 @@ class AuthService:
         # 2. 音声データをデコード
         audio_bytes = self._decode_audio_data(audio_data)
 
-        # 3. 音声ファイルをストレージに保存
-        storage_path = self._save_audio_to_storage(
-            speaker.id, audio_bytes, audio_format
-        )
-
-        # 4. VoiceSample をDBに保存
-        voice_sample = self.voice_sample_repository.create(
-            speaker_id=speaker.id,
-            audio_file_path=storage_path,
-            audio_format=audio_format,
-        )
-        assert voice_sample.id is not None
-        logger.info(f"VoiceSample created: {voice_sample.public_id}")
-
-        # 5. 声紋抽出
+        # 3. 声紋抽出
         embedding = self._extract_voiceprint(audio_bytes, audio_format)
 
-        # 6. Voiceprint をDBに保存
+        # 4. Voiceprint をDBに保存
         voiceprint = self.voiceprint_repository.create(
             speaker_id=speaker.id,
-            voice_sample_id=voice_sample.id,
             embedding=embedding,
         )
         logger.info(f"Voiceprint created: {voiceprint.public_id}")
 
         return AuthRegisterResult(
             speaker=speaker,
-            voice_sample=voice_sample,
             voiceprint=voiceprint,
         )
 
@@ -136,22 +112,6 @@ class AuthService:
             )
 
         return audio_bytes
-
-    def _save_audio_to_storage(
-        self, speaker_id: int, audio_bytes: bytes, audio_format: str
-    ) -> str:
-        """音声ファイルをストレージに保存."""
-        file_path = f"voice_samples/{speaker_id}/{uuid4()}.{audio_format}"
-        logger.info(f"Uploading to storage: {file_path}")
-
-        storage_path = self.storage.upload(
-            data=audio_bytes,
-            path=file_path,
-            content_type=f"audio/{audio_format}",
-        )
-        logger.info(f"Upload successful: {storage_path}")
-
-        return storage_path
 
     def verify(
         self,

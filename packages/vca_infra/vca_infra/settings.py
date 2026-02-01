@@ -33,14 +33,6 @@ class DatabaseSettings(BaseSettings):
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
-class StorageSettings(BaseSettings):
-    """ストレージ設定"""
-
-    STORAGE_TYPE: str = "local"
-    GCS_BUCKET_NAME: str | None = None
-    GCS_PROJECT_ID: str | None = None
-
-
 class SherpaOnnxSettings(BaseSettings):
     """sherpa-onnx声紋抽出設定."""
 
@@ -61,6 +53,5 @@ class VoiceprintSettings(BaseSettings):
 
 
 db_settings = DatabaseSettings()
-storage_settings = StorageSettings()
 sherpa_onnx_settings = SherpaOnnxSettings()
 voiceprint_settings = VoiceprintSettings()

@@ -19,7 +19,6 @@ class TestAuthRegister:
         data = response.json()
         assert data["speaker_id"] == "speaker_001"
         assert data["speaker_name"] == "山田太郎"
-        assert "voice_sample_id" in data
         assert "voiceprint_id" in data
         assert data["status"] == "registered"
 

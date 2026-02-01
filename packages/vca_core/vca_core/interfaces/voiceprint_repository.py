@@ -7,7 +7,6 @@ class VoiceprintRepositoryProtocol(Protocol):
     def create(
         self,
         speaker_id: int,
-        voice_sample_id: int,
         embedding: bytes,
     ) -> Voiceprint: ...
 
