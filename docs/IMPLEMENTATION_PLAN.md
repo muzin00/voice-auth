@@ -20,7 +20,7 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 | Phase 1 | SenseVoice調査・検証 | **完了** |
 | Phase 2 | 音声処理パイプライン | **完了** |
 | Phase 3 | データモデル刷新 | **完了** |
-| Phase 4 | 登録フロー | 未着手 |
+| Phase 4 | 登録フロー | **完了** |
 | Phase 5 | 認証フロー | 未着手 |
 | Phase 6 | デモUI | 未着手 |
 
@@ -149,20 +149,23 @@ WebSocket `/ws/enrollment`エンドポイントと5セット登録ロジック�
 
 ### タスク
 
-- [ ] バランスド・プロンプト生成ロジック
-- [ ] WebSocketエンドポイント作成
-- [ ] 登録フロー状態管理
-- [ ] ASR検証 + リトライロジック
-- [ ] 声紋ベクトル平均化（重心計算）
-- [ ] PIN登録（SHA-256ハッシュ化）
-- [ ] 結合テスト作成
+- [x] バランスド・プロンプト生成ロジック
+- [x] WebSocketエンドポイント作成
+- [x] 登録フロー状態管理
+- [x] ASR検証 + リトライロジック
+- [x] 声紋ベクトル平均化（重心計算）
+- [x] PIN登録（SHA-256ハッシュ化）
+- [x] 単体テスト作成
 
 ### 成果物
 - `vca_api`パッケージ
-  - `websocket/enrollment.py`
+  - `main.py` - FastAPIアプリケーション
+  - `settings.py` - API設定
+  - `dependencies.py` - 依存性注入
+  - `websocket/enrollment.py` - 登録WebSocketエンドポイント
 - `vca_auth`パッケージ
-  - `services/enrollment_service.py`
-  - `services/prompt_generator.py`
+  - `services/enrollment_service.py` - 登録サービス
+  - `services/prompt_generator.py` - プロンプト生成
 
 ---
 
@@ -238,3 +241,4 @@ htmx + WebSocketによる新規デモUIを作成する。
 | 2025-02-01 | Phase 1 完了（SenseVoice動作確認成功） |
 | 2025-02-01 | Phase 2 完了（vca_engineパッケージ実装完了） |
 | 2025-02-02 | Phase 3 完了（vca_authパッケージ実装完了） |
+| 2025-02-02 | Phase 4 完了（登録フロー実装完了） |
