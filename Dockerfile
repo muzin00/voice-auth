@@ -25,20 +25,11 @@ FROM python:3.11-slim AS model-downloader
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl bzip2 && rm -rf /var/lib/apt/lists/*
+    curl && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p models && \
-    # Silero VAD model
-    curl -L -o models/silero_vad.onnx \
-    https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx && \
-    # CAM++ Speaker Embedding model
-    curl -L -o models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx \
-    https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx && \
-    # SenseVoice ASR model
-    curl -L -o /tmp/sensevoice.tar.bz2 \
-    https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17.tar.bz2 && \
-    tar -xjf /tmp/sensevoice.tar.bz2 -C models && \
-    rm /tmp/sensevoice.tar.bz2
+# Copy and run download script
+COPY scripts/download_models.sh ./scripts/
+RUN chmod +x ./scripts/download_models.sh && ./scripts/download_models.sh ./models
 
 # --- Stage 4: Runtime (Production) ---
 FROM python:3.11-slim AS runner
