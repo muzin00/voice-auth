@@ -34,45 +34,40 @@ docker compose up -d
 
 ### テスト実行
 
-**テスト専用コンテナを使用（推奨）:**
+> **注意**: pytestはパッケージごとに実行してください（conftest.pyの衝突を避けるため）
 
 ```bash
-# テストイメージをビルド
-docker compose --profile test build test
-
 # 全パッケージのテストを実行
-docker compose --profile test run --rm test
+make test
 
 # 特定パッケージのテストを実行
-docker compose --profile test run --rm test uv run pytest packages/vca_engine/tests/ -v
-
-# 特定ファイルのテストを実行
-docker compose --profile test run --rm test uv run pytest packages/vca_api/tests/routes/test_auth.py -v
-```
-
-**起動中のappコンテナでテストを実行:**
-
-```bash
-# 全テスト
-docker compose exec app sh -c "uv sync && uv run pytest packages/ -v"
-
-# 特定パッケージのテスト
-docker compose exec app sh -c "uv sync && uv run pytest packages/vca_api/tests/ -v"
-
-# 特定ファイルのテスト
-docker compose exec app sh -c "uv sync && uv run pytest packages/vca_api/tests/routes/test_auth.py -v"
+make test-auth
+make test-engine
+make test-infra
 ```
 
 ### 型チェック
 
 ```bash
-docker compose exec app sh -c "uv sync && uv run pyright"
+# ローカル環境
+make typecheck
+
+# Docker環境
+docker compose exec app sh -c "uv sync && make typecheck"
 ```
 
-### Lint
+### Lint & Format
 
 ```bash
-docker compose exec app sh -c "uv sync && uv run ruff check ."
+# ローカル環境
+make lint     # Lintチェックのみ
+make format   # Lint修正 + フォーマット
+
+# Docker環境
+docker compose exec app sh -c "uv sync && make format"
+
+# pre-commit（コミット前の一括チェック）
+uv run pre-commit run -a
 ```
 
 ### API動作確認

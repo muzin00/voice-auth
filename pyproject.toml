@@ -10,6 +10,7 @@ package = false
 
 [tool.uv.workspace]
 members = ["packages/*"]
+exclude = ["packages/__pycache__"]
 
 [tool.uv.sources]
 vca-api = { workspace = true }
@@ -50,6 +51,7 @@ ignore = [
     "E501", # line too long
     "B008", # do not perform function calls in argument defaults
 ]
+extend-safe-fixes = ["F401"]  # Allow auto-removal of unused imports
 
 [tool.pytest.ini_options]
 testpaths = ["packages"]
