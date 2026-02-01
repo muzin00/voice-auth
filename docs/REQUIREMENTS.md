@@ -26,7 +26,7 @@
 | コンポーネント       | 技術                        |
 | -------------------- | --------------------------- |
 | フレームワーク       | FastAPI                     |
-| 通信方式             | WebSocket（登録・認証）/ REST API（プロンプト生成）|
+| 通信方式             | WebSocket（登録・認証）|
 | 音声区間検出 (VAD)   | sherpa-onnx (Silero VAD)    |
 | 音声認識 (ASR)       | sherpa-onnx (SenseVoice)    |
 | 声紋抽出 (SV)        | sherpa-onnx (CAM++)         |
@@ -86,7 +86,7 @@
 
 | ID     | 機能                     | 説明                                                              |
 | ------ | ------------------------ | ----------------------------------------------------------------- |
-| FR-1-1 | バランスド・プロンプト生成 | 0〜9が**各2回ずつ**出現する4桁×5セットを生成（例: 4326, 8105, ...）|
+| FR-1-1 | バランスド・プロンプト生成 | 0〜9が**各2回ずつ**出現する4桁×5セットを生成。同じ数字が連続しないこと（例: 4326, 8105, ...）|
 | FR-1-2 | 厳格なASR検証            | 認識テキスト≠プロンプトなら**即時破棄してリトライ**                |
 | FR-1-3 | セグメンテーション       | SenseVoiceのタイムスタンプで連続発話を個別数字に切り出し           |
 | FR-1-4 | ベクトル化               | 切り出した区間ごとにCAM++で声紋ベクトル（192次元）を抽出           |
@@ -334,9 +334,22 @@ Speaker (1) ←── (N) DigitVoiceprint
 
 ### REST API エンドポイント
 
-| メソッド | パス                 | 説明                 |
-| -------- | -------------------- | -------------------- |
-| GET      | `/api/v1/auth/prompt`| 認証用プロンプト生成 |
+| メソッド | パス      | 説明             |
+| -------- | --------- | ---------------- |
+| GET      | `/health` | ヘルスチェック   |
+
+#### GET /health
+
+サーバーの稼働状態を確認する。
+
+**レスポンス:**
+
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0"
+}
+```
 
 ## API 詳細
 
@@ -356,6 +369,24 @@ WebSocket通信ではJSONとバイナリのハイブリッド方式を採用す�
 
 - 接続中はサーバーメモリで状態を保持
 - 接続切断時は一時データを破棄（最初からやり直し）
+- WebSocketタイムアウト: 60秒（音声送信がない場合に自動切断）
+
+#### エラーメッセージフォーマット
+
+```json
+{
+  "type": "error",
+  "code": "SPEAKER_NOT_FOUND",
+  "message": "指定されたspeaker_idは登録されていません"
+}
+```
+
+主なエラーコード:
+- `SPEAKER_NOT_FOUND` - 指定されたspeaker_idが存在しない
+- `SPEAKER_ALREADY_EXISTS` - 登録済みのspeaker_idで再登録しようとした
+- `INVALID_AUDIO` - 音声データが不正（短すぎる、無音等）
+- `ASR_FAILED` - 音声認識に失敗
+- `TIMEOUT` - タイムアウト
 
 ---
 
@@ -367,15 +398,29 @@ WebSocket接続で登録フロー全体を処理する。
 
 ```
 1. Client: 接続確立
-2. Server → Client: プロンプト送信（5セット分）
-3. ループ（5セット分）:
-   3.1 Client → Server: Binary（音声データ）
-   3.2 Server → Client: JSON（ASR結果）
-   3.3 失敗時はリトライ（同じプロンプトを再送）
-4. Client → Server: JSON（PIN登録）
-5. Server → Client: JSON（登録完了）
-6. 接続クローズ
+2. Client → Server: JSON（登録開始、speaker_id指定）
+3. Server → Client: プロンプト送信（5セット分）
+4. ループ（5セット分）:
+   4.1 Client → Server: Binary（音声データ）
+   4.2 Server → Client: JSON（ASR結果）
+   4.3 失敗時はリトライ（同じプロンプトを再送）
+5. Client → Server: JSON（PIN登録）
+6. Server → Client: JSON（登録完了）
+7. 接続クローズ
 ```
+
+#### Client → Server: 登録開始
+
+```json
+{
+  "type": "start_enrollment",
+  "speaker_id": "user123",
+  "speaker_name": "山田太郎"
+}
+```
+
+※ `speaker_name`はオプション
+※ 既に登録済みの`speaker_id`の場合はエラーを返す
 
 #### Server → Client: プロンプト送信
 
@@ -452,10 +497,11 @@ WebSocket接続で声紋認証およびPINフォールバックを処理する�
 
 ```
 1. Client: 接続確立
-2. Client → Server: JSON（認証開始、speaker_id・prompt_id指定）
-3. Client → Server: Binary（音声データ）
-4. Server → Client: JSON（認証結果）
-5. 接続クローズ
+2. Client → Server: JSON（認証開始、speaker_id指定）
+3. Server → Client: JSON（プロンプト送信）
+4. Client → Server: Binary（音声データ）
+5. Server → Client: JSON（認証結果）
+6. 接続クローズ
 ```
 
 #### シーケンス（PINフォールバック）
@@ -472,9 +518,17 @@ WebSocket接続で声紋認証およびPINフォールバックを処理する�
 ```json
 {
   "type": "start_verify",
-  "speaker_id": "user123",
-  "prompt_id": "p_abc123",
-  "prompt": "4326"
+  "speaker_id": "user123"
+}
+```
+
+#### Server → Client: プロンプト送信
+
+```json
+{
+  "type": "prompt",
+  "prompt": "4326",
+  "length": 4
 }
 ```
 
@@ -558,38 +612,6 @@ WebSocket接続で声紋認証およびPINフォールバックを処理する�
   "message": "PIN認証成功"
 }
 ```
-
----
-
-### REST API 詳細
-
-### GET /api/v1/auth/prompt
-
-認証用のランダムプロンプト（数字列）を生成する。
-
-**クエリパラメータ:**
-
-| パラメータ | 型  | 必須 | 説明                               |
-| ---------- | --- | ---- | ---------------------------------- |
-| length     | int | No   | 数字列の長さ（デフォルト4、範囲4〜6）|
-
-**レスポンス:**
-
-```json
-{
-  "prompt": "4326",
-  "prompt_id": "p_abc123",
-  "expires_at": "2024-01-01T12:00:30Z"
-}
-```
-
-#### prompt_id の検証
-
-リプレイ攻撃対策として、認証・識別時には `prompt_id` を検証する。
-
-- WebSocket接続時に `prompt_id` を送信
-- サーバーは `prompt_id` が有効かつ未使用であることを確認
-- 使用済みまたは期限切れの `prompt_id` は拒否
 
 ## デモ画面（FR-4）
 
