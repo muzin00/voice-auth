@@ -53,6 +53,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  test:
+    build:
+      context: .
+      target: test
+    profiles: ["test"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["uv", "run", "pytest", "packages/", "-v"]
 volumes:
   postgres_data:
   sqlite_data:

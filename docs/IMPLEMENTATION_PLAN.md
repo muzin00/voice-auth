@@ -16,9 +16,9 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 
 | フェーズ | 内容 | ステータス |
 |---------|------|------------|
-| Phase 0 | 既存コード削除 | 未着手 |
-| Phase 1 | SenseVoice調査・検証 | 未着手 |
-| Phase 2 | 音声処理パイプライン | 未着手 |
+| Phase 0 | 既存コード削除 | **完了** |
+| Phase 1 | SenseVoice調査・検証 | **完了** |
+| Phase 2 | 音声処理パイプライン | **完了** |
 | Phase 3 | データモデル刷新 | 未着手 |
 | Phase 4 | 登録フロー | 未着手 |
 | Phase 5 | 認証フロー | 未着手 |
@@ -33,16 +33,16 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 
 ### タスク
 
-- [ ] 既存パッケージの削除（packages/配下）
-- [ ] 既存マイグレーションの削除
-- [ ] 既存テストの削除
-- [ ] Dockerfile/docker-compose.ymlの整理
-- [ ] 必要なインフラ基盤のみ残す
+- [x] 既存パッケージの削除（packages/配下）
+- [x] 既存マイグレーションの削除
+- [x] 既存テストの削除
+- [x] 空のパッケージ構造を再作成
 
-### 残すもの（判断中）
-- `pyproject.toml`（依存関係の定義）
-- `main.py`（エントリーポイントの骨格）
+### 残したもの
+- 各パッケージの`pyproject.toml`（依存関係の定義）
+- `main.py`（エントリーポイント、Phase 4以降で更新）
 - Docker関連ファイル（基本構成）
+- 空の`__init__.py`（各パッケージ）
 
 ---
 
@@ -53,16 +53,42 @@ sherpa-onnxでSenseVoiceを使用する際の具体的なモデルファイル�
 
 ### タスク
 
-- [ ] sherpa-onnxのSenseVoice対応状況を調査
-- [ ] 利用可能なモデルファイルを特定
-- [ ] タイムスタンプ出力の動作確認
-- [ ] 日本語数字認識の精度確認
-- [ ] モデルファイルのダウンロード・配置方法を決定
+- [x] sherpa-onnxのSenseVoice対応状況を調査
+- [x] 利用可能なモデルファイルを特定
+- [x] タイムスタンプ出力の動作確認
+- [x] 日本語認識の動作確認
+- [x] モデルファイルのダウンロード・配置方法を決定
+
+### 調査結果
+
+#### モデル情報
+- **モデル名**: `sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`
+- **推奨ファイル**: `model.int8.onnx` (228MB)
+- **対応言語**: 中国語、英語、日本語、韓国語、広東語
+- **ダウンロード元**: https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/
+
+#### 動作確認結果
+- タイムスタンプ: 各文字（トークン）ごとに取得可能
+- 数字認識: 「50」→「5」「0」として別々のトークン・タイムスタンプで認識される
+- 追加情報: 言語検出、感情検出、イベント検出も利用可能
+
+#### Python API
+```python
+recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+    model="model.int8.onnx",
+    tokens="tokens.txt",
+    use_itn=True,
+    num_threads=2,
+)
+stream = recognizer.create_stream()
+stream.accept_waveform(sample_rate, audio)
+recognizer.decode_stream(stream)
+# stream.result.text, stream.result.tokens, stream.result.timestamps
+```
 
 ### 成果物
-- モデルファイル名・パスの確定
-- サンプルコードによる動作確認結果
-- REQUIREMENTS.mdへの反映（必要に応じて）
+- `scripts/test_sensevoice.py` - 動作検証スクリプト
+- `models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/` - ダウンロード済みモデル
 
 ---
 
@@ -73,20 +99,24 @@ VAD + ASR + セグメンテーションの基盤を構築する。
 
 ### タスク
 
-- [ ] Silero VAD実装
-- [ ] SenseVoice ASR実装（タイムスタンプ付き）
-- [ ] 音声セグメンテーション実装
-- [ ] CAM++声紋抽出実装（192次元）
-- [ ] PyAV音声変換（webm → wav）
-- [ ] 単体テスト作成
+- [x] Silero VAD実装
+- [x] SenseVoice ASR実装（タイムスタンプ付き）
+- [x] 音声セグメンテーション実装
+- [x] CAM++声紋抽出実装（512次元）
+- [x] PyAV音声変換（webm → pcm）
+- [x] 単体テスト作成
 
 ### 成果物
 - `vca_engine`パッケージ
-  - `vad.py` - VAD処理
-  - `asr.py` - ASR処理
-  - `speaker.py` - 声紋抽出
+  - `vad.py` - VAD処理（Silero VAD）
+  - `asr.py` - ASR処理（SenseVoice）
+  - `voiceprint.py` - 声紋抽出（CAM++）
   - `segmentation.py` - 音声分割
-  - `converter.py` - フォーマット変換
+  - `audio_converter.py` - フォーマット変換（PyAV）
+  - `audio_processor.py` - 処理パイプラインのファサード
+  - `model_loader.py` - モデルのシングルトン管理
+  - `settings.py` - 設定管理
+  - `exceptions.py` - カスタム例外
 
 ---
 
@@ -204,3 +234,6 @@ htmx + WebSocketによる新規デモUIを作成する。
 |------|------|
 | 2025-02-01 | 初版作成 |
 | 2025-02-01 | 未決定事項を全て決定、REQUIREMENTS.mdに反映 |
+| 2025-02-01 | Phase 0 完了 |
+| 2025-02-01 | Phase 1 完了（SenseVoice動作確認成功） |
+| 2025-02-01 | Phase 2 完了（vca_engineパッケージ実装完了） |

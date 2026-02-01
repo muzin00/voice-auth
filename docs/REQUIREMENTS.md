@@ -781,13 +781,15 @@ def process_audio(audio_data):
 
 ### sherpa-onnx (SenseVoice) - 音声認識
 
-- **モデル**: SenseVoice（量子化済み ONNX モデル推奨）
+- **モデル**: `sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17`
+- **推奨ファイル**: `model.int8.onnx`（228MB、量子化済み）
 - **役割**:
   - 発話内容のテキスト化
-  - 各数字の発話タイミング（タイムスタンプ）の取得
-- **対応言語**: 日本語/中国語/英語等（多言語対応）
+  - 各文字の発話タイミング（タイムスタンプ）の取得
+- **対応言語**: 日本語/中国語/英語/韓国語/広東語
 - **参考リンク**:
   - [SenseVoice (GitHub)](https://github.com/FunAudioLLM/SenseVoice)
+  - [sherpa-onnx SenseVoice Documentation](https://k2-fsa.github.io/sherpa/onnx/sense-voice/index.html)
   - [sherpa-onnx ASR models](https://github.com/k2-fsa/sherpa-onnx/releases)
 
 ```python
@@ -795,8 +797,8 @@ import sherpa_onnx
 
 # SenseVoice ASR設定
 recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
-    model="/path/to/sense-voice.onnx",
-    tokens="/path/to/tokens.txt",
+    model="models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.int8.onnx",
+    tokens="models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt",
     num_threads=2,
     use_itn=True,
 )
@@ -804,11 +806,12 @@ recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
 # 音声認識（タイムスタンプ付き）
 stream = recognizer.create_stream()
 stream.accept_waveform(sample_rate, samples)
-recognizer.decode(stream)
+recognizer.decode_stream(stream)
 result = stream.result
 
 # result.text: 認識テキスト
-# result.timestamps: 各トークンのタイムスタンプ
+# result.tokens: 各文字のリスト
+# result.timestamps: 各文字のタイムスタンプ（秒）
 ```
 
 ### sherpa-onnx (CAM++) - 声紋抽出
