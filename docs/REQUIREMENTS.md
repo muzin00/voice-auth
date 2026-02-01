@@ -26,9 +26,9 @@
 | コンポーネント       | 技術                        |
 | -------------------- | --------------------------- |
 | フレームワーク       | FastAPI                     |
-| 通信方式             | WebSocket（登録・認証・識別）/ REST API（プロンプト生成）|
+| 通信方式             | WebSocket（登録・認証）/ REST API（プロンプト生成）|
 | 音声区間検出 (VAD)   | sherpa-onnx (Silero VAD)    |
-| 音声認識 (ASR)       | sherpa-onnx (Paraformer)    |
+| 音声認識 (ASR)       | sherpa-onnx (SenseVoice)    |
 | 声紋抽出 (SV)        | sherpa-onnx (CAM++)         |
 | 音声変換             | PyAV（webm → wav）          |
 | データベース         | PostgreSQL / SQLite         |
@@ -38,7 +38,7 @@
 ### モデル役割
 
 - **Silero VAD（VAD）**: 人の声が含まれる区間を検出、無音/環境音を除去
-- **Paraformer（ASR）**: 発話内容のテキスト化、および各数字の発話タイミング（タイムスタンプ）の取得
+- **SenseVoice（ASR）**: 発話内容のテキスト化、および各数字の発話タイミング（タイムスタンプ）の取得
 - **CAM++（SV）**: 切り出された音声区間からの特徴ベクトル抽出（192次元）
 
 ## 認証フロー
@@ -55,7 +55,7 @@
 └──────────────────────────────────────┘
        ↓
 ┌──────────────────────────────────────┐
-│  2. ASR検証（sherpa-onnx Paraformer） │
+│  2. ASR検証（sherpa-onnx SenseVoice） │
 │     → 発話内容をテキスト化           │
 │     → プロンプトと一致するか判定     │
 │     → 不一致なら即時NG               │
@@ -88,7 +88,7 @@
 | ------ | ------------------------ | ----------------------------------------------------------------- |
 | FR-1-1 | バランスド・プロンプト生成 | 0〜9が**各2回ずつ**出現する4桁×5セットを生成（例: 4326, 8105, ...）|
 | FR-1-2 | 厳格なASR検証            | 認識テキスト≠プロンプトなら**即時破棄してリトライ**                |
-| FR-1-3 | セグメンテーション       | Paraformerのタイムスタンプで連続発話を個別数字に切り出し           |
+| FR-1-3 | セグメンテーション       | SenseVoiceのタイムスタンプで連続発話を個別数字に切り出し           |
 | FR-1-4 | ベクトル化               | 切り出した区間ごとにCAM++で声紋ベクトル（192次元）を抽出           |
 | FR-1-5 | 重心計算（Centroid）     | 各数字2サンプルの**平均ベクトル**をマスター登録ベクトルとする      |
 | FR-1-6 | PIN登録                  | 4桁数字をUI入力、**SHA-256ハッシュ化**して保存（バックアップ認証用）|
@@ -103,7 +103,7 @@
 2. 5セット分ループ (i = 0 to 4):
    ┌─────────────────────────────────────────┐
    │  While True (リトライループ):            │
-   │    音声入力 → Paraformer ASR            │
+   │    音声入力 → SenseVoice ASR            │
    │    IF 認識テキスト ≠ プロンプト:         │
    │      → エラー表示、再録音               │
    │    ELSE:                                │
@@ -140,7 +140,7 @@
 | ------ | -------------- | ------------------------------------------------------------- |
 | FR-2-1 | プロンプト生成 | ランダムな数字列（4〜6桁）を生成・提示                         |
 | FR-2-2 | 音声取得       | マイクまたはファイルからユーザー音声を取得                     |
-| FR-2-3 | ASR検証        | Paraformerでテキスト化し、プロンプトと一致するか判定           |
+| FR-2-3 | ASR検証        | SenseVoiceでテキスト化し、プロンプトと一致するか判定           |
 | FR-2-4 | タイムスタンプ | ASRで各数字の発話タイミングを取得                              |
 | FR-2-5 | 音声分割       | タイムスタンプに基づき各数字の音声区間を切り出し               |
 | FR-2-6 | 声紋照合       | 切り出した音声と登録済みベクトルのコサイン類似度を計算         |
@@ -151,7 +151,6 @@
 
 | ID   | 機能     | 説明                                   |
 | ---- | -------- | -------------------------------------- |
-| FR-3 | 話者識別 | 登録済み話者から最も類似する話者を特定 |
 | FR-4 | デモ画面 | 音声登録・認証のデモUI（1画面）        |
 
 ## エッジケースと対策
@@ -160,7 +159,7 @@
 | -------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
 | 読みの揺れ     | 「0」を「ゼロ/レイ/マル」、「7」を「ナナ/シチ」と読む   | 正規化ロジック：ASR結果を数字記号に変換する辞書マッピングを実装         |
 | 無音・ノイズ   | 発話の前後に長い無音や環境音が入る                      | sherpa-onnx内蔵のVAD（Voice Activity Detection）を有効にし発話区間のみ処理 |
-| 早口・遅口     | ユーザーによって話す速度が違う                          | Paraformerのタイムスタンプ機能により動的に区間を切り出すため自動対応    |
+| 早口・遅口     | ユーザーによって話す速度が違う                          | SenseVoiceのタイムスタンプ機能により動的に区間を切り出すため自動対応    |
 | 声紋不一致     | ASRは正解したが声紋スコアが低い                         | なりすまし（録音再生など）の可能性が高いため認証失敗とする              |
 
 ## 依存パッケージ
@@ -332,7 +331,6 @@ Speaker (1) ←── (N) DigitVoiceprint
 | ----------------- | -------------------------------------------- |
 | `/ws/enrollment`  | 話者登録（プロンプト生成・音声送信・PIN登録）|
 | `/ws/verify`      | 認証（声紋認証 + PINフォールバック）         |
-| `/ws/identify`    | 識別（1:N照合）                              |
 
 ### REST API エンドポイント
 
@@ -563,47 +561,6 @@ WebSocket接続で声紋認証およびPINフォールバックを処理する�
 
 ---
 
-### WS /ws/identify（識別）
-
-WebSocket接続で1:N識別を処理する。
-
-#### シーケンス
-
-```
-1. Client: 接続確立
-2. Client → Server: JSON（識別開始、prompt_id指定）
-3. Client → Server: Binary（音声データ）
-4. Server → Client: JSON（識別結果）
-5. 接続クローズ
-```
-
-#### Client → Server: 識別開始
-
-```json
-{
-  "type": "start_identify",
-  "prompt_id": "p_abc123",
-  "prompt": "4326"
-}
-```
-
-#### Server → Client: 識別結果
-
-```json
-{
-  "type": "identify_result",
-  "identified": true,
-  "speaker_id": "user123",
-  "speaker_name": "山田太郎",
-  "asr_result": "4326",
-  "asr_matched": true,
-  "voice_similarity": 0.85,
-  "message": "識別成功"
-}
-```
-
----
-
 ### REST API 詳細
 
 ### GET /api/v1/auth/prompt
@@ -766,12 +723,12 @@ VAD（Voice Activity Detection）は音声処理パイプラインの**最初に
 
 | 工程 | 役割 | 防ぐ問題 |
 |------|------|----------|
-| ASR前処理 | 人が喋っている区間だけをParaformerに渡す | 無音/環境音でAIが**幻覚（ハルシネーション）**を起こすのを防止 |
+| ASR前処理 | 人が喋っている区間だけをSenseVoiceに渡す | 無音/環境音でAIが**幻覚（ハルシネーション）**を起こすのを防止 |
 | 切り出し精度向上 | 録音開始〜発話開始までの「間」を自動カット | 喋り出しの瞬間をより正確に検知 |
 
 #### なぜ必須か
 
-- Paraformerに長い無音や環境ノイズだけの音声を入力すると、無理やり言葉を探して誤認識する
+- SenseVoiceに長い無音や環境ノイズだけの音声を入力すると、無理やり言葉を探して誤認識する
 - 例: エアコンの音 → 「あ」と誤認識
 - VADが抜けると、環境音を「1」と誤認して学習してしまうリスクがある
 
@@ -790,7 +747,7 @@ def process_audio(audio_data):
     if not vad.is_speech(audio_data):
         return None  # 人の声じゃないなら捨てる（ASRに渡さない）
 
-    # 声と判定されたら Paraformer へ
+    # 声と判定されたら SenseVoice へ
     text = recognizer.decode(audio_data)
     return text
 ```
@@ -800,24 +757,26 @@ def process_audio(audio_data):
 - **Silero VAD**: sherpa-onnxに組み込み済みの高精度VADモデル
 - **モデルファイル**: `silero_vad.onnx`
 
-### sherpa-onnx (Paraformer) - 音声認識
+### sherpa-onnx (SenseVoice) - 音声認識
 
-- **モデル**: Paraformer（量子化済み ONNX モデル推奨）
+- **モデル**: SenseVoice（量子化済み ONNX モデル推奨）
 - **役割**:
   - 発話内容のテキスト化
   - 各数字の発話タイミング（タイムスタンプ）の取得
-- **対応言語**: 日本語/中国語
+- **対応言語**: 日本語/中国語/英語等（多言語対応）
 - **参考リンク**:
+  - [SenseVoice (GitHub)](https://github.com/FunAudioLLM/SenseVoice)
   - [sherpa-onnx ASR models](https://github.com/k2-fsa/sherpa-onnx/releases)
 
 ```python
 import sherpa_onnx
 
-# Paraformer ASR設定
-recognizer = sherpa_onnx.OfflineRecognizer.from_paraformer(
-    paraformer="/path/to/paraformer.onnx",
+# SenseVoice ASR設定
+recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+    model="/path/to/sense-voice.onnx",
     tokens="/path/to/tokens.txt",
     num_threads=2,
+    use_itn=True,
 )
 
 # 音声認識（タイムスタンプ付き）
@@ -899,8 +858,8 @@ def cut_segment_with_padding(audio_array, sample_rate, start_sec, end_sec, paddi
     Args:
         audio_array (np.array): 元の音声データ (1次元配列)
         sample_rate (int): サンプリングレート (例: 16000)
-        start_sec (float): Paraformerが検知した開始時間 (秒)
-        end_sec (float): Paraformerが検知した終了時間 (秒)
+        start_sec (float): SenseVoiceが検知した開始時間 (秒)
+        end_sec (float): SenseVoiceが検知した終了時間 (秒)
         padding_sec (float): 追加する余白の時間 (秒) デフォルト0.1秒
 
     Returns:
@@ -948,7 +907,7 @@ safe_end = min(end_sec + padding_sec, next_start_sec)
 入力: 音声波形, プロンプト "4326"
            ↓
 ┌──────────────────────────────────────┐
-│  1. Paraformer ASR処理                │
+│  1. SenseVoice ASR処理                │
 │     → テキスト: "4326"               │
 │     → タイムスタンプ: [(0.1,0.3), (0.4,0.6), ...]  │
 │     → "4326" と一致しなければ即時NG  │
