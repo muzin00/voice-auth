@@ -110,19 +110,19 @@ def segment_by_timestamps(
                     f"Empty segment for digit '{digit}' at {start_sec:.3f}-{end_sec:.3f}s"
                 )
 
-            segments.append(DigitSegment(
-                digit=digit,
-                audio=segment_audio,
-                start_time=start_sec,
-                end_time=end_sec,
-            ))
+            segments.append(
+                DigitSegment(
+                    digit=digit,
+                    audio=segment_audio,
+                    start_time=start_sec,
+                    end_time=end_sec,
+                )
+            )
 
         except SegmentationError:
             raise
         except Exception as e:
-            raise SegmentationError(
-                f"Failed to segment digit '{digit}': {e}"
-            ) from e
+            raise SegmentationError(f"Failed to segment digit '{digit}': {e}") from e
 
     return segments
 
@@ -142,7 +142,9 @@ def merge_segments(segments: list[DigitSegment]) -> np.ndarray:
     return np.concatenate([s.audio for s in segments])
 
 
-def get_segment_duration(segment: DigitSegment, sample_rate: int | None = None) -> float:
+def get_segment_duration(
+    segment: DigitSegment, sample_rate: int | None = None
+) -> float:
     """Get duration of a segment in seconds.
 
     Args:

@@ -37,9 +37,7 @@ class VoiceprintExtractor:
             )
             self._extractor = sherpa_onnx.SpeakerEmbeddingExtractor(config)
         except Exception as e:
-            raise SpeakerEmbeddingError(
-                f"Failed to load voiceprint model: {e}"
-            ) from e
+            raise SpeakerEmbeddingError(f"Failed to load voiceprint model: {e}") from e
 
     @property
     def embedding_dim(self) -> int:
@@ -84,9 +82,7 @@ class VoiceprintExtractor:
         except SpeakerEmbeddingError:
             raise
         except Exception as e:
-            raise SpeakerEmbeddingError(
-                f"Voiceprint extraction failed: {e}"
-            ) from e
+            raise SpeakerEmbeddingError(f"Voiceprint extraction failed: {e}") from e
 
 
 def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
