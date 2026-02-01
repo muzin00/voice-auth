@@ -33,25 +33,4 @@ class DatabaseSettings(BaseSettings):
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
-class SherpaOnnxSettings(BaseSettings):
-    """sherpa-onnx声紋抽出設定."""
-
-    SPEAKER_MODEL_PATH: str = "models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx"
-    SPEAKER_NUM_THREADS: int = 1
-
-    model_config = {"env_prefix": ""}
-
-
-class VoiceprintSettings(BaseSettings):
-    """声紋認証設定."""
-
-    # 声紋類似度の閾値（0.0〜1.0）
-    # この値以上の類似度で声紋一致と判定
-    VOICEPRINT_SIMILARITY_THRESHOLD: float = 0.4
-
-    model_config = {"env_prefix": ""}
-
-
 db_settings = DatabaseSettings()
-sherpa_onnx_settings = SherpaOnnxSettings()
-voiceprint_settings = VoiceprintSettings()

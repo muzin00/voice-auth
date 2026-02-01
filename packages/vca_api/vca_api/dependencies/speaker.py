@@ -2,9 +2,9 @@ from collections.abc import Generator
 
 from fastapi import Depends
 from sqlmodel import Session
-from vca_core.services import SpeakerService
-from vca_infra.repositories import SpeakerRepository
-from vca_infra.session import get_session
+from vca_auth.repositories import SpeakerRepository
+from vca_auth.services import SpeakerService
+from vca_infra.database import get_session
 
 
 def get_speaker_service(

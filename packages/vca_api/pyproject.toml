@@ -5,12 +5,14 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
     "fastapi[standard]",
     "pydantic-settings",
-    "vca-core",
+    "vca-auth",
+    "vca-engine",
     "vca-infra",
 ]
 
 [tool.uv.sources]
-vca-core = { workspace = true }
+vca-auth = { workspace = true }
+vca-engine = { workspace = true }
 vca-infra = { workspace = true }
 
 [build-system]

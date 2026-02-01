@@ -1,6 +1,6 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
-from vca_core.exceptions import NotFoundError
+from vca_auth.exceptions import NotFoundError
 
 
 async def not_found_exception_handler(request: Request, exc: Exception) -> JSONResponse:

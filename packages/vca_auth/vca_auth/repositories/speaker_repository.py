@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
-from vca_core.models.speaker import Speaker
+
+from vca_auth.models.speaker import Speaker
 
 
 class SpeakerRepository:

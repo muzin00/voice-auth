@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 
-import vca_core.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
+import vca_auth.models  # noqa: F401  # pyright: ignore[reportUnusedImport]
 from alembic import context
 from sqlalchemy import create_engine, pool
 from sqlmodel import SQLModel

@@ -2,15 +2,11 @@ from collections.abc import Generator
 
 from fastapi import Depends
 from sqlmodel import Session
-from vca_core.services.auth_service import AuthService
-from vca_infra.model_loader import get_speaker_extractor
-from vca_infra.repositories import (
-    SpeakerRepository,
-    VoiceprintRepository,
-)
-from vca_infra.services import VoiceprintService
-from vca_infra.session import get_session
-from vca_infra.settings import voiceprint_settings
+from vca_auth.repositories import SpeakerRepository, VoiceprintRepository
+from vca_auth.services import AuthService
+from vca_auth.settings import auth_settings
+from vca_engine import VoiceprintService, get_speaker_extractor
+from vca_infra.database import get_session
 
 
 def get_auth_service(
@@ -27,7 +23,7 @@ def get_auth_service(
     service = AuthService(
         speaker_repository=speaker_repository,
         voiceprint_repository=voiceprint_repository,
-        voiceprint_service=voiceprint_service,
-        voice_similarity_threshold=voiceprint_settings.VOICEPRINT_SIMILARITY_THRESHOLD,
+        voiceprint_engine=voiceprint_service,
+        voice_similarity_threshold=auth_settings.VOICE_SIMILARITY_THRESHOLD,
     )
     yield service

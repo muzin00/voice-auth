@@ -4,7 +4,7 @@ import logging
 
 import sherpa_onnx
 
-from vca_infra.settings import sherpa_onnx_settings
+from vca_engine.settings import engine_settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +37,13 @@ def load_models() -> None:
 
     # sherpa-onnx話者埋め込みモデルのロード
     logger.info(
-        f"Loading sherpa-onnx speaker model: {sherpa_onnx_settings.SPEAKER_MODEL_PATH} "
-        f"(num_threads={sherpa_onnx_settings.SPEAKER_NUM_THREADS})"
+        f"Loading sherpa-onnx speaker model: {engine_settings.SPEAKER_MODEL_PATH} "
+        f"(num_threads={engine_settings.SPEAKER_NUM_THREADS})"
     )
 
     config = sherpa_onnx.SpeakerEmbeddingExtractorConfig(
-        model=sherpa_onnx_settings.SPEAKER_MODEL_PATH,
-        num_threads=sherpa_onnx_settings.SPEAKER_NUM_THREADS,
+        model=engine_settings.SPEAKER_MODEL_PATH,
+        num_threads=engine_settings.SPEAKER_NUM_THREADS,
         debug=False,
     )
 

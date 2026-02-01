@@ -3,13 +3,13 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 from vca_api.main import app
-from vca_core.models import Speaker
-from vca_core.services.auth_service import VoiceprintServiceProtocol
-from vca_infra.repositories import SpeakerRepository
-from vca_infra.session import get_session
+from vca_auth.models import Speaker
+from vca_auth.protocols import VoiceprintEngineProtocol
+from vca_auth.repositories import SpeakerRepository, VoiceprintRepository
+from vca_infra.database import get_session
 
 
-class MockVoiceprintService(VoiceprintServiceProtocol):
+class MockVoiceprintService(VoiceprintEngineProtocol):
     """テスト用のモック声紋サービス."""
 
     def extract(self, audio_bytes: bytes, audio_format: str = "wav") -> bytes:
@@ -48,12 +48,8 @@ def client_fixture(
 ):
     """テスト用クライアント（依存性オーバーライド付き）."""
     from vca_api.dependencies.auth import get_auth_service
-    from vca_core.services.auth_service import AuthService
-    from vca_infra.repositories import (
-        SpeakerRepository,
-        VoiceprintRepository,
-    )
-    from vca_infra.settings import voiceprint_settings
+    from vca_auth.services import AuthService
+    from vca_auth.settings import auth_settings
 
     def get_session_override():
         return session
@@ -65,8 +61,8 @@ def client_fixture(
         return AuthService(
             speaker_repository=speaker_repository,
             voiceprint_repository=voiceprint_repository,
-            voiceprint_service=voiceprint_service,
-            voice_similarity_threshold=voiceprint_settings.VOICEPRINT_SIMILARITY_THRESHOLD,
+            voiceprint_engine=voiceprint_service,
+            voice_similarity_threshold=auth_settings.VOICE_SIMILARITY_THRESHOLD,
         )
 
     app.dependency_overrides[get_session] = get_session_override
@@ -79,8 +75,6 @@ def client_fixture(
 @pytest.fixture(name="registered_speaker")
 def registered_speaker_fixture(session: Session) -> Speaker:
     """登録済み話者を作成するfixture."""
-    from vca_infra.repositories import VoiceprintRepository
-
     speaker_repo = SpeakerRepository(session)
     voiceprint_repo = VoiceprintRepository(session)
 

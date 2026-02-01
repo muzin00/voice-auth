@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from vca_core.models import Speaker
+from vca_auth.models import Speaker
 
 
 class TestAuthRegister:

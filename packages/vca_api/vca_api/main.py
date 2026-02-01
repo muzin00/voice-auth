@@ -6,8 +6,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from vca_core.exceptions import NotFoundError
-from vca_infra.model_loader import load_models
+from vca_auth.exceptions import NotFoundError
+from vca_engine import load_models
 
 from vca_api.exception_handlers import not_found_exception_handler
 from vca_api.routes.auth import router as auth_router

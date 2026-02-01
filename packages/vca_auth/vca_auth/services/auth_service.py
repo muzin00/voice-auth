@@ -1,45 +1,17 @@
 import base64
 import logging
-from dataclasses import dataclass
-from typing import Protocol
 
-from vca_core.constants import MAX_AUDIO_SIZE
-from vca_core.exceptions import NotFoundError
-from vca_core.interfaces.speaker_repository import SpeakerRepositoryProtocol
-from vca_core.interfaces.voiceprint_repository import VoiceprintRepositoryProtocol
-from vca_core.models import Speaker, Voiceprint
+from vca_auth.constants import MAX_AUDIO_SIZE
+from vca_auth.dto import AuthRegisterResult, AuthVerifyResult
+from vca_auth.exceptions import NotFoundError
+from vca_auth.models import Speaker
+from vca_auth.protocols import (
+    SpeakerRepositoryProtocol,
+    VoiceprintEngineProtocol,
+    VoiceprintRepositoryProtocol,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class VoiceprintServiceProtocol(Protocol):
-    """声紋サービスのプロトコル."""
-
-    def extract(self, audio_bytes: bytes, audio_format: str = "wav") -> bytes:
-        """声紋を抽出."""
-        ...
-
-    def compare(self, embedding1: bytes, embedding2: bytes) -> float:
-        """2つの声紋を比較."""
-        ...
-
-
-@dataclass
-class AuthRegisterResult:
-    """認証登録結果."""
-
-    speaker: Speaker
-    voiceprint: Voiceprint
-
-
-@dataclass
-class AuthVerifyResult:
-    """認証結果（1:1照合）."""
-
-    authenticated: bool
-    speaker_id: str
-    voice_similarity: float
-    message: str
 
 
 class AuthService:
@@ -47,12 +19,12 @@ class AuthService:
         self,
         speaker_repository: SpeakerRepositoryProtocol,
         voiceprint_repository: VoiceprintRepositoryProtocol,
-        voiceprint_service: VoiceprintServiceProtocol,
+        voiceprint_engine: VoiceprintEngineProtocol,
         voice_similarity_threshold: float,
     ):
         self.speaker_repository = speaker_repository
         self.voiceprint_repository = voiceprint_repository
-        self.voiceprint_service = voiceprint_service
+        self.voiceprint_engine = voiceprint_engine
         self.voice_similarity_threshold = voice_similarity_threshold
 
     def register(
@@ -159,7 +131,7 @@ class AuthService:
             )
 
         similarities = [
-            self.voiceprint_service.compare(input_embedding, vp.embedding)
+            self.voiceprint_engine.compare(input_embedding, vp.embedding)
             for vp in voiceprints
         ]
         voice_similarity = max(similarities)  # 最も高い類似度を採用
@@ -182,4 +154,4 @@ class AuthService:
 
     def _extract_voiceprint(self, audio_bytes: bytes, audio_format: str) -> bytes:
         """声紋を抽出."""
-        return self.voiceprint_service.extract(audio_bytes, audio_format)
+        return self.voiceprint_engine.extract(audio_bytes, audio_format)

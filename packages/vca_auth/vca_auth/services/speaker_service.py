@@ -1,5 +1,5 @@
-from vca_core.interfaces.speaker_repository import SpeakerRepositoryProtocol
-from vca_core.models.speaker import Speaker
+from vca_auth.models.speaker import Speaker
+from vca_auth.protocols import SpeakerRepositoryProtocol
 
 
 class SpeakerService:

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from vca_core.services.auth_service import AuthService
+from vca_auth.services import AuthService
 
 from vca_api.dependencies.auth import get_auth_service
 from vca_api.schemas.auth import (

@@ -11,7 +11,7 @@ import numpy as np
 import soundfile as sf
 from numpy.typing import NDArray
 
-from vca_infra.utils.audio_converter import convert_to_wav
+from vca_engine.converter import convert_to_wav
 
 if TYPE_CHECKING:
     import sherpa_onnx

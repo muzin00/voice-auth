@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
-from vca_core.models import Voiceprint
+
+from vca_auth.models import Voiceprint
 
 
 class VoiceprintRepository:

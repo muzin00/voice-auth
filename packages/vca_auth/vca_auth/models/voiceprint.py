@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from vca_core.shared import model_fields
+from vca_auth.shared import model_fields
 
 if TYPE_CHECKING:
-    from vca_core.models.speaker import Speaker
+    from vca_auth.models.speaker import Speaker
 
 
 class Voiceprint(SQLModel, table=True):
