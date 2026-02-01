@@ -20,6 +20,9 @@ class Speaker(SQLModel, table=True):
     updated_at: datetime = model_fields.updated_at_field()
     speaker_id: str = Field(index=True, unique=True, max_length=100)
     speaker_name: str | None = Field(default=None, max_length=100)
+    pin_hash: str | None = Field(
+        default=None, max_length=64, description="PINのハッシュ"
+    )
 
     # Relationships
     voiceprints: list["Voiceprint"] = Relationship(back_populates="speaker")

@@ -56,9 +56,7 @@ class VoiceprintService:
 
         try:
             # soundfileで音声を読み込み
-            samples, sample_rate = sf.read(
-                io.BytesIO(audio_bytes), dtype="float32"
-            )
+            samples, sample_rate = sf.read(io.BytesIO(audio_bytes), dtype="float32")
 
             # ステレオの場合はモノラルに変換
             if len(samples.shape) > 1:

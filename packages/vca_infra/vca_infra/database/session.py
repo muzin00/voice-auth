@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from contextlib import contextmanager
 from typing import Any
 
 from sqlalchemy import event
@@ -31,5 +32,15 @@ def set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:
 
 
 def get_session() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+
+@contextmanager
+def get_session_context() -> Generator[Session, None, None]:
+    """コンテキストマネージャとしてセッションを取得.
+
+    WebSocketハンドラなど、FastAPIの依存性注入が使えない場所で使用。
+    """
     with Session(engine) as session:
         yield session

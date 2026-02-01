@@ -10,6 +10,9 @@ from vca_auth.exceptions import NotFoundError
 from vca_engine import load_models
 
 from vca_api.exception_handlers import not_found_exception_handler
+from vca_api.routers.ws_enrollment import router as enrollment_router
+from vca_api.routers.ws_identify import router as identify_router
+from vca_api.routers.ws_verify import router as verify_router
 from vca_api.routes.auth import router as auth_router
 from vca_api.routes.demo import router as demo_router
 from vca_api.settings import server_settings
@@ -49,6 +52,9 @@ if STATIC_DIR.exists():
 # ルーター登録
 app.include_router(auth_router)
 app.include_router(demo_router)
+app.include_router(enrollment_router)
+app.include_router(verify_router)
+app.include_router(identify_router)
 
 
 @app.get("/")

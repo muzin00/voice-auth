@@ -19,7 +19,13 @@ class Voiceprint(SQLModel, table=True):
     created_at: datetime = model_fields.created_at_field()
     updated_at: datetime = model_fields.updated_at_field()
     speaker_id: int = Field(foreign_key="speaker.id", index=True)
-    embedding: bytes = Field(description="声紋ベクトル（256次元）")
+    digit: str | None = Field(
+        default=None,
+        max_length=1,
+        index=True,
+        description="数字（0-9）。Noneの場合は全体声紋",
+    )
+    embedding: bytes = Field(description="声紋ベクトル（192次元）")
 
     # Relationships
     speaker: "Speaker" = Relationship(back_populates="voiceprints")
