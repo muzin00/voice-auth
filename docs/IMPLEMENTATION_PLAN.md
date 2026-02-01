@@ -22,7 +22,7 @@ REQUIREMENTS.mdに基づき、既存実装を完全に作り直す。本ドキ�
 | Phase 3 | データモデル刷新 | **完了** |
 | Phase 4 | 登録フロー | **完了** |
 | Phase 5 | 認証フロー | **完了** |
-| Phase 6 | デモUI | 未着手 |
+| Phase 6 | デモUI | **完了** |
 
 ---
 
@@ -199,18 +199,18 @@ htmx + WebSocketによる新規デモUIを作成する。
 
 ### タスク
 
-- [ ] 登録画面（プロンプト表示、進捗、録音ボタン）
-- [ ] PIN設定画面
-- [ ] 認証画面（プロンプト表示、録音、結果表示）
-- [ ] WebSocket通信のJavaScript実装
-- [ ] TailwindCSSによるスタイリング
-- [ ] E2Eテスト（手動確認）
+- [x] 登録画面（プロンプト表示、進捗、録音ボタン）
+- [x] PIN設定画面
+- [x] 認証画面（プロンプト表示、録音、結果表示）
+- [x] WebSocket通信のJavaScript実装
+- [x] TailwindCSSによるスタイリング
+- [x] E2Eテスト（手動確認）
 
 ### 成果物
 - `vca_api`パッケージ
-  - `templates/demo.html`
-  - `static/js/demo.js`
-  - `routes/demo.py`
+  - `routes/demo.py` - デモページルート（`GET /demo/`）
+  - `templates/demo.html` - デモUI（TailwindCSS）
+  - `static/js/demo.js` - WebSocket通信・音声録音
 
 ---
 
@@ -243,3 +243,4 @@ htmx + WebSocketによる新規デモUIを作成する。
 | 2025-02-02 | Phase 3 完了（vca_authパッケージ実装完了） |
 | 2025-02-02 | Phase 4 完了（登録フロー実装完了） |
 | 2025-02-02 | Phase 5 完了（認証フロー実装完了） |
+| 2025-02-02 | Phase 6 完了（デモUI実装完了） |
