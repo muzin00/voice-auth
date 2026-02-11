@@ -15,7 +15,7 @@ from typing import Protocol
 import numpy as np
 
 from voiceauth.domain.models import Speaker
-from voiceauth.domain.prompt_generator import PromptGenerator
+from voiceauth.domain.prompt_generator import generate_verification_prompt
 from voiceauth.domain_service.settings import settings
 
 
@@ -146,7 +146,6 @@ class VerifyService:
         """
         self.audio_processor = audio_processor
         self.speaker_store = speaker_store
-        self._prompt_generator = PromptGenerator()
 
     def start_verification(
         self,
@@ -175,9 +174,7 @@ class VerifyService:
         speaker = self.speaker_store.get_speaker_by_id(speaker_id)
         has_pin = speaker.pin_hash is not None
 
-        prompt = self._prompt_generator.generate_verification_prompt(
-            length=prompt_length
-        )
+        prompt = generate_verification_prompt(length=prompt_length)
 
         session = VerifySession(
             speaker_id=speaker_id,
