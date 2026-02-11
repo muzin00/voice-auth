@@ -39,27 +39,12 @@ make typecheck
 make format
 ```
 
-### データベース選択
-
-環境変数`DB_TYPE`でPostgreSQLまたはSQLiteを選択できます（デフォルト: SQLite）。
-
-```bash
-# SQLite（デフォルト）
-DB_TYPE=sqlite
-docker compose up -d
-
-# PostgreSQL
-DB_TYPE=postgres
-docker compose --profile postgres up -d
-```
-
 ## ドキュメント
 
 | ドキュメント | 内容 |
 |-------------|------|
 | [要件定義書](docs/requirements.md) | 機能要件・非機能要件・セキュリティ要件 |
 | [アーキテクチャガイド](docs/architecture-guide.md) | 設計・ディレクトリ構成・データモデル |
-| [API仕様書](docs/api-specification.md) | WebSocket/REST API詳細 |
 | [開発ガイド](docs/development-guide.md) | 開発方針（TDD, Outside-In） |
 | [デプロイガイド](docs/deployment.md) | GCP Cloud Runへのデプロイ |
 
@@ -71,7 +56,7 @@ docker compose --profile postgres up -d
 | 音声区間検出 | sherpa-onnx (Silero VAD) |
 | 音声認識 | sherpa-onnx (SenseVoice) |
 | 声紋抽出 | sherpa-onnx (CAM++) |
-| データベース | PostgreSQL / SQLite |
+| データベース | SQLite |
 
 ## ライセンス
 
