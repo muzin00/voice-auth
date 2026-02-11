@@ -71,7 +71,7 @@ ENV PORT=8000
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy application source code
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock alembic.ini ./
 COPY voiceauth/ ./voiceauth/
 COPY main.py ./
 
