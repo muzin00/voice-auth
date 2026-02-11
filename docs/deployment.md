@@ -174,7 +174,7 @@ gcloud run jobs create migration-upgrade-sqlite \
   --args="-c,cd /app && uv run alembic upgrade head" \
   --add-volume="name=db-volume,type=cloud-storage,bucket=$DB_BUCKET_NAME" \
   --add-volume-mount="volume=db-volume,mount-path=/app/db" \
-  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/voiceauth.db" \
+  --set-env-vars="DB_SQLITE_PATH=/app/db/voiceauth.db" \
   --max-retries=0 \
   --task-timeout=300
 ```
@@ -201,7 +201,7 @@ gcloud run deploy voiceauth-server \
   --execution-environment=gen2 \
   --add-volume="name=db-volume,type=cloud-storage,bucket=$DB_BUCKET_NAME" \
   --add-volume-mount="volume=db-volume,mount-path=/app/db" \
-  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/voiceauth.db,STORAGE_TYPE=gcs,GCS_BUCKET_NAME=$BUCKET_NAME,GCS_PROJECT_ID=$PROJECT_ID" \
+  --set-env-vars="DB_SQLITE_PATH=/app/db/voiceauth.db,STORAGE_TYPE=gcs,GCS_BUCKET_NAME=$BUCKET_NAME,GCS_PROJECT_ID=$PROJECT_ID" \
   --max-instances=1 \
   --memory=4Gi \
   --cpu-boost \
