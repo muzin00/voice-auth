@@ -60,12 +60,10 @@ COPY --from=dev-builder /app/.venv /app/.venv
 # Copy dependency files for uv sync
 COPY pyproject.toml uv.lock ./
 
-# Copy entrypoint script (auto-downloads models if missing)
-COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Copy pre-downloaded models
+COPY --from=model-downloader /app/models /var/lib/voiceauth/models
 
 # Note: Source code is mounted via docker-compose volume
-ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["python", "main.py"]
 
 # --- Stage 6: Production ---

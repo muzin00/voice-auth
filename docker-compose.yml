@@ -17,7 +17,6 @@ services:
     volumes:
       - .:/app
       - venv_data:/app/.venv
-      - model_data:/var/lib/voiceauth/models
       - sqlite_data:/var/lib/voiceauth/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -26,5 +25,4 @@ services:
       retries: 5
 volumes:
   venv_data:
-  model_data:
   sqlite_data:
