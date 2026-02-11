@@ -351,12 +351,24 @@ function resetVerification() {
 // Audio Recording
 // ============================================
 
-async function startRecording(mode) {
+let micStream = null;
+let isRecording = false;
+
+async function ensureMicStream() {
+    if (micStream && micStream.active) return micStream;
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return micStream;
+}
+
+function startRecording(mode) {
+    if (isRecording) return;
+    isRecording = true;
     currentMode = mode;
     audioChunks = [];
+    updateRecordingUI(mode, true);
 
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    ensureMicStream().then(stream => {
+        if (!isRecording) return;
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
 
         mediaRecorder.ondataavailable = (event) => {
@@ -368,30 +380,31 @@ async function startRecording(mode) {
         mediaRecorder.onstop = () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
             sendAudio(audioBlob);
-            stream.getTracks().forEach(track => track.stop());
         };
 
         mediaRecorder.start();
-        updateRecordingUI(mode, true);
-
-    } catch (error) {
+    }).catch(error => {
         console.error('Error accessing microphone:', error);
         showError('マイクにアクセスできません。マイクの許可を確認してください。');
-    }
+        isRecording = false;
+        updateRecordingUI(mode, false);
+    });
 }
 
 function stopRecording(mode) {
+    if (!isRecording) return;
+    isRecording = false;
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
-        updateRecordingUI(mode, false);
     }
+    updateRecordingUI(mode, false);
 }
 
-function updateRecordingUI(mode, isRecording) {
+function updateRecordingUI(mode, recording) {
     const btn = document.getElementById(`${mode}-record-btn`);
     const text = document.getElementById(`${mode}-record-text`);
 
-    if (isRecording) {
+    if (recording) {
         btn.classList.add('recording', 'bg-red-700');
         btn.classList.remove('bg-red-500');
         text.innerHTML = '録音中...';
@@ -409,6 +422,58 @@ function sendAudio(blob) {
         showFeedback(currentMode, '処理中...', 'info');
     }
 }
+
+// ============================================
+// Record Button Touch/Mouse Setup
+// ============================================
+
+function setupRecordButton(btnId, mode) {
+    const btn = document.getElementById(btnId);
+    let activeTouchId = null;
+
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (activeTouchId !== null) return;
+        activeTouchId = e.changedTouches[0].identifier;
+        startRecording(mode);
+    }, { passive: false });
+
+    btn.addEventListener('touchend', (e) => {
+        for (const touch of e.changedTouches) {
+            if (touch.identifier === activeTouchId) {
+                activeTouchId = null;
+                stopRecording(mode);
+                return;
+            }
+        }
+    }, { passive: false });
+
+    btn.addEventListener('touchcancel', (e) => {
+        for (const touch of e.changedTouches) {
+            if (touch.identifier === activeTouchId) {
+                activeTouchId = null;
+                stopRecording(mode);
+                return;
+            }
+        }
+    }, { passive: false });
+
+    btn.addEventListener('mousedown', (e) => {
+        if (activeTouchId !== null) return;
+        startRecording(mode);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isRecording && currentMode === mode && activeTouchId === null) {
+            stopRecording(mode);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupRecordButton('enroll-record-btn', 'enroll');
+    setupRecordButton('verify-record-btn', 'verify');
+});
 
 // ============================================
 // File Upload (Verify)
@@ -465,7 +530,7 @@ function showError(message) {
 
 // Prevent context menu on long press (mobile)
 document.addEventListener('contextmenu', (e) => {
-    if (e.target.id && e.target.id.includes('record-btn')) {
+    if (e.target.closest('.record-btn')) {
         e.preventDefault();
     }
 });

@@ -16,6 +16,12 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 0.5em;
         }
+        .record-btn {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -91,11 +97,7 @@
                 <!-- Record Button -->
                 <div class="text-center mb-4">
                     <button id="enroll-record-btn"
-                            onmousedown="startRecording('enroll')"
-                            onmouseup="stopRecording('enroll')"
-                            ontouchstart="startRecording('enroll')"
-                            ontouchend="stopRecording('enroll')"
-                            class="w-32 h-32 rounded-full bg-red-500 text-white text-lg font-medium hover:bg-red-600 transition flex items-center justify-center mx-auto shadow-lg">
+                            class="record-btn w-32 h-32 rounded-full bg-red-500 text-white text-lg font-medium hover:bg-red-600 transition flex items-center justify-center mx-auto shadow-lg">
                         <span id="enroll-record-text">押しながら<br>話す</span>
                     </button>
                 </div>
@@ -174,11 +176,7 @@
                 <!-- Record Button -->
                 <div class="text-center mb-4">
                     <button id="verify-record-btn"
-                            onmousedown="startRecording('verify')"
-                            onmouseup="stopRecording('verify')"
-                            ontouchstart="startRecording('verify')"
-                            ontouchend="stopRecording('verify')"
-                            class="w-32 h-32 rounded-full bg-red-500 text-white text-lg font-medium hover:bg-red-600 transition flex items-center justify-center mx-auto shadow-lg">
+                            class="record-btn w-32 h-32 rounded-full bg-red-500 text-white text-lg font-medium hover:bg-red-600 transition flex items-center justify-center mx-auto shadow-lg">
                         <span id="verify-record-text">押しながら<br>話す</span>
                     </button>
                 </div>
