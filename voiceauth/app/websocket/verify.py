@@ -95,6 +95,7 @@ def get_audio_processor() -> Any:
     """
     from voiceauth.app.model_loader import get_asr, get_vad, get_voiceprint
     from voiceauth.audio import AudioConverter
+    from voiceauth.domain_service.settings import settings as domain_settings
     from voiceauth.engine.voiceprint import cosine_similarity
 
     class AudioProcessorWrapper:
@@ -103,7 +104,8 @@ def get_audio_processor() -> Any:
             self.vad = get_vad()
             self.asr = get_asr()
             self.voiceprint = get_voiceprint()
-            self.similarity_threshold = 0.75
+            self.similarity_threshold = domain_settings.similarity_threshold
+            self.per_digit_min_threshold = domain_settings.per_digit_min_threshold
 
         def process_webm(self, webm_data: bytes) -> tuple[Any, int]:
             return self.converter.webm_to_pcm(webm_data)
@@ -177,7 +179,14 @@ def get_audio_processor() -> Any:
             else:
                 average_score = 0.0
 
-            authenticated = average_score >= self.similarity_threshold
+            # Check per-digit minimum threshold
+            all_digits_pass = all(
+                score >= self.per_digit_min_threshold for score in digit_scores.values()
+            )
+
+            authenticated = (
+                all_digits_pass and average_score >= self.similarity_threshold
+            )
 
             class VerificationResult:
                 def __init__(
