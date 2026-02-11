@@ -604,6 +604,39 @@ wheels = [
 ]
 
 [[package]]
+name = "sherpa-onnx-bin"
+version = "1.12.24"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sherpa-onnx-core" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f0/63/c27b758b8ab083e50fe39a1c9e43f05322344882acce9c33ab533076b92c/sherpa_onnx_bin-1.12.24-py3-none-macosx_10_15_universal2.whl", hash = "sha256:54798ee939c00934e677b2c2c2a1b1072579f34c15c80c1f4908bd86d1c079d6", size = 28970923, upload-time = "2026-02-10T04:10:16.741Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/dc/f4e26c070f4a5f563d3e3920369dd0457df9372d470b248e23b21e3da02f/sherpa_onnx_bin-1.12.24-py3-none-macosx_10_15_x86_64.whl", hash = "sha256:28cc13cd8e0020348ef184156b90779d2f41047c8b0455093c25a3d6fd842280", size = 15222121, upload-time = "2026-02-10T04:18:43.573Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/56/056e747248b87765d4071194ed118687c944a8656924e6ee91d395639c8a/sherpa_onnx_bin-1.12.24-py3-none-macosx_11_0_arm64.whl", hash = "sha256:d4fb55af2d5df7cd11553b162a1708d74df7575dca092825931f840e04a186ec", size = 13750298, upload-time = "2026-02-10T04:51:56.255Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/78/5a56e6606ee637f6c23e3fbdd06f36e7312521aab4c18f66cebd7d2b7d49/sherpa_onnx_bin-1.12.24-py3-none-manylinux2014_aarch64.whl", hash = "sha256:efc937d049c585aa1d89972f06c731f7fc5e5b5a946c376d5443622c8a1f035d", size = 20724100, upload-time = "2026-02-10T04:03:13.657Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/dc/e6bc5c6f6dfcd9665af0acfd1d731290fdd3443337c8cb066f0d89a9936c/sherpa_onnx_bin-1.12.24-py3-none-manylinux2014_x86_64.whl", hash = "sha256:c5a459e06b65cd87dcf64eac67f4adc72e68b2cb80b6de5ae7d301fbd129fb46", size = 22143216, upload-time = "2026-02-10T04:18:52.408Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/01/199afe4069fbcaf858f049c40a4677787aa135b8050267a2227885d6fb9f/sherpa_onnx_bin-1.12.24-py3-none-manylinux_2_35_armv7l.whl", hash = "sha256:a891af74e6a88a325c56ab29a47972b9e7791feb2160b49d3a9d16ce9f8a6aeb", size = 17567216, upload-time = "2026-02-10T06:20:16.165Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/bc/f0b9c8a26aff9bf76c1c73f9fa8d748d9416f20b699ea182d6398d4d20d8/sherpa_onnx_bin-1.12.24-py3-none-win32.whl", hash = "sha256:46df06bfad5d84c0d18aaeca84a76d1a28108f48bc8ff0d8b237c228f8b5e51d", size = 15930009, upload-time = "2026-02-10T04:10:37.781Z" },
+    { url = "https://files.pythonhosted.org/packages/74/2e/c65120841a2ae4cd6e9c27620a2011c03e5c0e476423c76ef7060257d95e/sherpa_onnx_bin-1.12.24-py3-none-win_amd64.whl", hash = "sha256:70d558441cbd827ebd2a8bd1691141fdca9f8eaf1ccba0f6ac1c81ee3364fbbb", size = 18693363, upload-time = "2026-02-10T04:27:36.22Z" },
+]
+
+[[package]]
+name = "sherpa-onnx-core"
+version = "1.12.24"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/03/7ab25211c856fb7902c768ec7af0efdb41f88fff3b96a5748631df09c3b0/sherpa_onnx_core-1.12.24-py3-none-macosx_10_15_universal2.whl", hash = "sha256:2e0603ec7e107ab328a532d4b594c37496892d5c16796a1a3a8078db5ed2fec8", size = 46057729, upload-time = "2026-02-10T04:10:20.177Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/4d/f9eb24db897e078d1b86b3c819cafbf4d78564f59d4c506684a2d2746b5c/sherpa_onnx_core-1.12.24-py3-none-macosx_10_15_x86_64.whl", hash = "sha256:9c5d50ee2060b02a0c25ff9c1833858bb5b4aa4aa35cd7e1bef4af936a6c8787", size = 24804443, upload-time = "2026-02-10T04:18:45.82Z" },
+    { url = "https://files.pythonhosted.org/packages/be/a6/1452f541a87de7e278fe79283e27186e92091bdaace3007d953c212e654e/sherpa_onnx_core-1.12.24-py3-none-macosx_11_0_arm64.whl", hash = "sha256:e658ac154ec01496793a24fb77f48c78eab68860d6c6c3d3108855470ac6d869", size = 21270272, upload-time = "2026-02-10T04:51:58.08Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/10/3ddb7a6bb2dc2ff0976c2571fc4c27c253291eaf130091da6ec9c91995c0/sherpa_onnx_core-1.12.24-py3-none-manylinux2014_aarch64.whl", hash = "sha256:535387f1723380e280c332c7abcef9195e32dd740a7677d4b0ad4245893edaf6", size = 12224015, upload-time = "2026-02-10T04:03:15.799Z" },
+    { url = "https://files.pythonhosted.org/packages/22/44/3437395e169d2d13a08a7438b028e6714c55cd030e32b56c9c38d011bf09/sherpa_onnx_core-1.12.24-py3-none-manylinux2014_x86_64.whl", hash = "sha256:b398a18e5d17a63cd5720bbd9c705b627ddd1e5640988ff00aa391bf646995c5", size = 9622287, upload-time = "2026-02-10T04:18:54.739Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/c4/51c840713ac80dc6124e7ed9ff2f1f67a199036e12ee448777f758ddedb0/sherpa_onnx_core-1.12.24-py3-none-manylinux_2_35_armv7l.whl", hash = "sha256:435eb711e3fcbbfb867d9fa52a2f6b62e7a1975117c0848d75b1e0e90368d517", size = 9155010, upload-time = "2026-02-10T06:20:18.488Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/97/ee2195e7da83df132e9d3d1c242a923e194a5295d9447b471209edd8a143/sherpa_onnx_core-1.12.24-py3-none-win32.whl", hash = "sha256:443d39db17eacf0187aa32a11d4a97788f0af78f58a5e214d2e906346196330f", size = 13056983, upload-time = "2026-02-10T04:10:39.978Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/fc/481d3ec8cccaf8bf2198e15932f1fb76b6e5a29fd80df423ca402ce7a3b1/sherpa_onnx_core-1.12.24-py3-none-win_amd64.whl", hash = "sha256:4ab0f6c8d334e5777799fca1a249f7fddf00d7946f83399f139ad9e1a2c9d1d4", size = 14869243, upload-time = "2026-02-10T04:27:38.596Z" },
+]
+
+[[package]]
 name = "sqlalchemy"
 version = "2.0.45"
 source = { registry = "https://pypi.org/simple" }
@@ -810,6 +843,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pydantic-settings" },
     { name = "sherpa-onnx" },
+    { name = "sherpa-onnx-bin" },
     { name = "sqlmodel" },
     { name = "ulid-py" },
     { name = "uvicorn", extra = ["standard"] },
@@ -835,6 +869,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.0" },
     { name = "pydantic-settings", specifier = ">=2.7.0" },
     { name = "sherpa-onnx", specifier = ">=1.10.0" },
+    { name = "sherpa-onnx-bin", specifier = ">=1.10.0" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
     { name = "ulid-py", specifier = ">=1.1.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.0" },
