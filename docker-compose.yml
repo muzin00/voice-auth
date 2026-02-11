@@ -15,15 +15,11 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - venv_data:/app/.venv
-      - model_data:/app/models
-      - sqlite_data:/app/sqlite_data
+      - ./volumes/venv:/app/.venv
+      - ./volumes/models:/app/models
+      - ./volumes/sqlite:/app/sqlite_data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-volumes:
-  sqlite_data:
-  venv_data:
-  model_data:
