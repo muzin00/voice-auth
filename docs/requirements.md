@@ -166,10 +166,8 @@
 
 ```
 sherpa-onnx
-soundfile
 numpy
 av          # PyAV: webm → wav 変換
-websockets  # WebSocket通信
 ```
 
 ## 非機能要件
@@ -233,5 +231,4 @@ def register_voice(user_id, audio_data):
 ## 関連ドキュメント
 
 - [アーキテクチャガイド](./architecture-guide.md) - 設計・ディレクトリ構成・データモデル
-- [API仕様書](./api-specification.md) - WebSocket/REST API詳細
 - [デプロイガイド](./deployment.md) - GCP Cloud Runへのデプロイ
