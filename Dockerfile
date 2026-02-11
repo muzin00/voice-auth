@@ -27,7 +27,7 @@ RUN chmod +x ./scripts/download_models.sh && ./scripts/download_models.sh ./mode
 FROM python:3.11-slim AS runner
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080 \
+    PORT=8000 \
     PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
