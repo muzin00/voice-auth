@@ -411,6 +411,34 @@ function sendAudio(blob) {
 }
 
 // ============================================
+// File Upload (Verify)
+// ============================================
+
+function handleVerifyFileUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!verifyWs || verifyWs.readyState !== WebSocket.OPEN) {
+        showError('WebSocket が接続されていません。認証を開始してください。');
+        input.value = '';
+        return;
+    }
+
+    currentMode = 'verify';
+    showFeedback('verify', `${file.name} を送信中...`, 'info');
+
+    file.arrayBuffer().then(buffer => {
+        verifyWs.send(new Blob([buffer]));
+        showFeedback('verify', '処理中...', 'info');
+    }).catch(error => {
+        console.error('File read error:', error);
+        showError('ファイルの読み込みに失敗しました');
+    });
+
+    input.value = '';
+}
+
+// ============================================
 // Utilities
 // ============================================
 
