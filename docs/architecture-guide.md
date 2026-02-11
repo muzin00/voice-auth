@@ -230,28 +230,3 @@ voiceauth/app/
     ├── auth.py
     └── test_auth.py        # 同じ階層に配置
 ```
-
-## 現行構成からの移行
-
-| 現行 | 移行先 |
-|---|---|
-| vca_auth/models/speaker.py | voiceauth/domain/models/speaker.py |
-| vca_auth/models/digit_voiceprint.py | voiceauth/domain/models/voiceprint.py |
-| vca_auth/services/enrollment_service.py | voiceauth/domain_service/enrollment.py |
-| vca_auth/services/verify_service.py | voiceauth/domain_service/verify.py |
-| vca_auth/services/prompt_generator.py | voiceauth/domain/prompt_generator.py |
-| vca_auth/stores/ | voiceauth/database/stores/ |
-| vca_api/routes/ | voiceauth/app/routers/ |
-| vca_api/websocket/ | voiceauth/app/websocket/ |
-| vca_engine/vad.py | voiceauth/engine/vad/silero.py |
-| vca_engine/asr.py | voiceauth/engine/asr/sensevoice.py |
-| vca_engine/segmentation.py | voiceauth/engine/asr/segmentation.py |
-| vca_engine/voiceprint.py | voiceauth/engine/voiceprint/campp.py |
-| vca_engine/audio_converter.py | voiceauth/audio/converter.py |
-| vca_engine/audio_processor.py | 削除（Facade廃止） |
-| vca_engine/model_loader.py | voiceauth/app/model_loader.py |
-| vca_engine/exceptions.py | voiceauth/engine/exceptions.py |
-| vca_api/templates/ | voiceauth/app/templates/ |
-| vca_api/static/ | voiceauth/app/static/ |
-| vca_infra/settings.py | voiceauth/database/settings.py |
-| vca_infra/storage/ | 削除 |

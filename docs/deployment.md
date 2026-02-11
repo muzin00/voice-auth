@@ -102,7 +102,7 @@ GitHubリポジトリの Settings > Secrets and variables > Actions で以下を
 
 ```bash
 # プロジェクト作成
-gcloud projects create YOUR_PROJECT_ID --name="VCA Server"
+gcloud projects create YOUR_PROJECT_ID --name="VoiceAuth Server"
 gcloud config set project YOUR_PROJECT_ID
 
 # 課金アカウント紐付け
@@ -121,9 +121,9 @@ gcloud services enable run.googleapis.com \
 export PROJECT_ID=$(gcloud config get-value project)
 export REGION=asia-northeast1
 # 音声ファイル用バケット
-export BUCKET_NAME="${PROJECT_ID}-vca-voices"
+export BUCKET_NAME="${PROJECT_ID}-voiceauth-voices"
 # SQLite DB保存用バケット
-export DB_BUCKET_NAME="${PROJECT_ID}-vca-db"
+export DB_BUCKET_NAME="${PROJECT_ID}-voiceauth-db"
 ```
 
 ### 3. GCS バケット セットアップ
@@ -152,14 +152,14 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 ```bash
 # 初回イメージビルド（まだ公開しない）
-gcloud run deploy vca-server \
+gcloud run deploy voiceauth-server \
   --source . \
   --region=$REGION \
   --platform=managed \
   --no-allow-unauthenticated
 
 # イメージURL取得
-IMAGE_URL=$(gcloud run services describe vca-server \
+IMAGE_URL=$(gcloud run services describe voiceauth-server \
   --region=$REGION \
   --format="value(spec.template.spec.containers[0].image)")
 ```
@@ -174,7 +174,7 @@ gcloud run jobs create migration-upgrade-sqlite \
   --args="-c,cd /app && uv run alembic upgrade head" \
   --add-volume="name=db-volume,type=cloud-storage,bucket=$DB_BUCKET_NAME" \
   --add-volume-mount="volume=db-volume,mount-path=/app/db" \
-  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/vca.db" \
+  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/voiceauth.db" \
   --max-retries=0 \
   --task-timeout=300
 ```
@@ -193,7 +193,7 @@ gcloud run jobs execute migration-upgrade-sqlite \
 > でインスタンス数を制限し、SQLiteへの同時書き込みを防止します。
 
 ```bash
-gcloud run deploy vca-server \
+gcloud run deploy voiceauth-server \
   --image=$IMAGE_URL \
   --region=$REGION \
   --platform=managed \
@@ -201,7 +201,7 @@ gcloud run deploy vca-server \
   --execution-environment=gen2 \
   --add-volume="name=db-volume,type=cloud-storage,bucket=$DB_BUCKET_NAME" \
   --add-volume-mount="volume=db-volume,mount-path=/app/db" \
-  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/vca.db,STORAGE_TYPE=gcs,GCS_BUCKET_NAME=$BUCKET_NAME,GCS_PROJECT_ID=$PROJECT_ID" \
+  --set-env-vars="DB_TYPE=sqlite,SQLITE_PATH=/app/db/voiceauth.db,STORAGE_TYPE=gcs,GCS_BUCKET_NAME=$BUCKET_NAME,GCS_PROJECT_ID=$PROJECT_ID" \
   --max-instances=1 \
   --memory=4Gi \
   --cpu-boost \
@@ -217,7 +217,7 @@ gcloud run deploy vca-server \
 
 ```bash
 # サービスログ
-gcloud run services logs read vca-server --region asia-northeast1 --limit=50
+gcloud run services logs read voiceauth-server --region asia-northeast1 --limit=50
 
 # マイグレーションログ
 gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=migration-upgrade-sqlite" \
@@ -229,10 +229,10 @@ gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=mi
 
 ```bash
 # サービス詳細
-gcloud run services describe vca-server --region asia-northeast1
+gcloud run services describe voiceauth-server --region asia-northeast1
 
 # サービスURL取得
-gcloud run services describe vca-server \
+gcloud run services describe voiceauth-server \
   --region asia-northeast1 \
   --format="value(status.url)"
 ```
@@ -291,7 +291,7 @@ gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
 
 ```bash
 # サービスを以前のリビジョンにロールバック
-gcloud run services update-traffic vca-server \
+gcloud run services update-traffic voiceauth-server \
   --to-revisions=REVISION_NAME=100 \
   --region asia-northeast1
 ```

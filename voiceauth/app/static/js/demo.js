@@ -1,5 +1,5 @@
 /**
- * VCA Demo JavaScript
+ * VoiceAuth Demo JavaScript
  * Handles WebSocket communication and audio recording
  */
 
