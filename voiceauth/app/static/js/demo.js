@@ -126,7 +126,7 @@ function showEnrollRecording() {
 
 function updateEnrollPrompt() {
     const prompt = enrollState.prompts[enrollState.currentSet];
-    document.getElementById('enroll-prompt').textContent = prompt.split('').join(' ');
+    document.getElementById('enroll-prompt').textContent = prompt.split('').join('');
     document.getElementById('enroll-progress-text').textContent =
         `${enrollState.currentSet} / ${enrollState.prompts.length}`;
 }
@@ -251,7 +251,7 @@ function handleVerifyMessage(data) {
 function showVerifyRecording(prompt) {
     document.getElementById('verify-form').classList.add('hidden');
     document.getElementById('verify-recording').classList.remove('hidden');
-    document.getElementById('verify-prompt').textContent = prompt.split('').join(' ');
+    document.getElementById('verify-prompt').textContent = prompt.split('').join('');
 }
 
 function showVerifyResult(data) {
