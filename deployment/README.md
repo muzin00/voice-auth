@@ -1,5 +1,81 @@
 # GCP Cloud Runへのデプロイ
 
+## GitHub Actions CI/CD セットアップ
+
+GitHub Actionsを使ったCI/CDパイプラインを利用する場合は、以下の設定が必要です。
+
+### 1. Workload Identity Federation セットアップ
+
+```bash
+export PROJECT_ID=$(gcloud config get-value project)
+export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+export GITHUB_ORG="your-github-org"  # GitHubのユーザー名またはOrg名
+export GITHUB_REPO="voice-auth"      # リポジトリ名
+
+# Workload Identity Pool 作成
+gcloud iam workload-identity-pools create "github-pool" \
+  --project="$PROJECT_ID" \
+  --location="global" \
+  --display-name="GitHub Actions Pool"
+
+# OIDC Provider 作成
+gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+  --project="$PROJECT_ID" \
+  --location="global" \
+  --workload-identity-pool="github-pool" \
+  --display-name="GitHub Provider" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
+  --issuer-uri="https://token.actions.githubusercontent.com"
+
+# サービスアカウント作成
+gcloud iam service-accounts create "github-actions" \
+  --project="$PROJECT_ID" \
+  --display-name="GitHub Actions"
+
+# 必要な権限を付与
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role="roles/run.developer"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+
+# Workload Identityとサービスアカウントをバインド
+gcloud iam service-accounts add-iam-policy-binding \
+  "github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --project="$PROJECT_ID" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-pool/attribute.repository/${GITHUB_ORG}/${GITHUB_REPO}"
+```
+
+### 2. Artifact Registry リポジトリ作成
+
+```bash
+gcloud artifacts repositories create voiceauth \
+  --repository-format=docker \
+  --location=asia-northeast1 \
+  --description="VoiceAuth container images"
+```
+
+### 3. GitHub Secrets/Variables 設定
+
+GitHubリポジトリの Settings > Secrets and variables > Actions で以下を設定:
+
+**Secrets:**
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`: `projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-pool/providers/github-provider`
+- `GCP_SERVICE_ACCOUNT`: `github-actions@${PROJECT_ID}.iam.gserviceaccount.com`
+
+**Variables:**
+- `GCP_PROJECT_ID`: プロジェクトID
+- `GCP_REGION`: `asia-northeast1`
+
+---
+
 ## 前提条件
 
 - [Google Cloud SDK (gcloud)](https://cloud.google.com/sdk/docs/install)
