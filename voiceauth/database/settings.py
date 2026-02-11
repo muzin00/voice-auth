@@ -12,7 +12,7 @@ class DatabaseSettings(BaseSettings):
         extra="ignore",
     )
 
-    sqlite_path: str = "./data/voiceauth.db"
+    sqlite_path: str = "./sqlite_data/voiceauth.db"
 
     @property
     def database_url(self) -> str:
