@@ -9,7 +9,7 @@ from voiceauth.database.settings import settings
 engine = create_engine(
     settings.database_url,
     echo=False,
-    connect_args={"check_same_thread": False} if settings.db_type == "sqlite" else {},
+    connect_args={"check_same_thread": False},
 )
 
 
