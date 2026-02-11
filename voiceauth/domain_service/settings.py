@@ -7,7 +7,7 @@ class DomainServiceSettings(BaseSettings):
     """Domain service configuration settings."""
 
     model_config = SettingsConfigDict(
-        env_prefix="VOICEAUTH_SERVICE_",
+        env_prefix="SERVICE_",
         env_file=".env",
         extra="ignore",
     )

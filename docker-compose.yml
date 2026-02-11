@@ -4,7 +4,7 @@ services:
     restart: always
     profiles: ["postgres"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${VOICEAUTH_DB_POSTGRES_USER} -d ${VOICEAUTH_DB_POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_POSTGRES_USER} -d ${DB_POSTGRES_DB}"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -15,9 +15,9 @@ services:
       - .env
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_PASSWORD=${VOICEAUTH_DB_POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${VOICEAUTH_DB_POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${VOICEAUTH_DB_POSTGRES_DB?Variable not set}
+      - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${DB_POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${DB_POSTGRES_DB?Variable not set}
     ports:
       - "5432:5432"
 
@@ -35,15 +35,15 @@ services:
       - .env
     environment:
       - PYTHONDONTWRITEBYTECODE=1
-      - VOICEAUTH_API_HOST=0.0.0.0
-      - VOICEAUTH_API_PORT=8000
-      - VOICEAUTH_DB_DB_TYPE=${VOICEAUTH_DB_DB_TYPE:-sqlite}
-      - VOICEAUTH_DB_SQLITE_PATH=/app/data/voiceauth.db
-      - VOICEAUTH_DB_POSTGRES_SERVER=db
-      - VOICEAUTH_DB_POSTGRES_PORT=${VOICEAUTH_DB_POSTGRES_PORT:-5432}
-      - VOICEAUTH_DB_POSTGRES_DB=${VOICEAUTH_DB_POSTGRES_DB}
-      - VOICEAUTH_DB_POSTGRES_USER=${VOICEAUTH_DB_POSTGRES_USER}
-      - VOICEAUTH_DB_POSTGRES_PASSWORD=${VOICEAUTH_DB_POSTGRES_PASSWORD}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DB_DB_TYPE=${DB_DB_TYPE:-sqlite}
+      - DB_SQLITE_PATH=/app/data/voiceauth.db
+      - DB_POSTGRES_SERVER=db
+      - DB_POSTGRES_PORT=${DB_POSTGRES_PORT:-5432}
+      - DB_POSTGRES_DB=${DB_POSTGRES_DB}
+      - DB_POSTGRES_USER=${DB_POSTGRES_USER}
+      - DB_POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD}
     ports:
       - "8000:8000"
     volumes:

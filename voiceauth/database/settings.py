@@ -11,7 +11,7 @@ class DatabaseSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_prefix="VOICEAUTH_DB_",
+        env_prefix="DB_",
         env_file=".env",
         extra="ignore",
     )

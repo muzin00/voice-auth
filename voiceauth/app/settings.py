@@ -8,7 +8,7 @@ class APISettings(BaseSettings):
     """Settings for the VoiceAuth API server."""
 
     model_config = SettingsConfigDict(
-        env_prefix="VOICEAUTH_API_",
+        env_prefix="API_",
         env_file=".env",
         extra="ignore",
     )

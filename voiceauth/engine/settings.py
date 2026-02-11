@@ -9,7 +9,7 @@ class EngineSettings(BaseSettings):
     """Audio processing engine settings."""
 
     model_config = SettingsConfigDict(
-        env_prefix="VOICEAUTH_ENGINE_",
+        env_prefix="ENGINE_",
         env_file=".env",
         extra="ignore",
     )
