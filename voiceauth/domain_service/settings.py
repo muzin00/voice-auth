@@ -18,7 +18,6 @@ class DomainServiceSettings(BaseSettings):
     # Verification settings
     verification_prompt_length: int = 4
     similarity_threshold: float = 0.85
-    per_digit_min_threshold: float = 0.75
 
 
 settings = DomainServiceSettings()

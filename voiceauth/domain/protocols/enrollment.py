@@ -37,8 +37,8 @@ class ProcessingResultProtocol(Protocol):
         ...
 
     @property
-    def digit_embeddings(self) -> dict[str, np.ndarray]:
-        """Get embeddings per digit."""
+    def utterance_embedding(self) -> np.ndarray:
+        """Get utterance-level embedding."""
         ...
 
 
@@ -58,12 +58,12 @@ class EnrollmentSpeakerStoreProtocol(Protocol):
         """Create a new speaker."""
         ...
 
-    def add_voiceprints_bulk(
+    def add_voiceprint(
         self,
         speaker_id: str,
-        embeddings: dict[str, np.ndarray],
-    ) -> list[Voiceprint]:
-        """Add multiple voiceprints."""
+        embedding: np.ndarray,
+    ) -> Voiceprint:
+        """Add or update a voiceprint."""
         ...
 
     def update_speaker_pin(self, speaker_id: str, pin_hash: str | None) -> Speaker:

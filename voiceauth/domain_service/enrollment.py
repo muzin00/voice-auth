@@ -3,8 +3,8 @@
 Manages the enrollment flow:
 1. Generate prompts
 2. Process audio for each prompt (with retries)
-3. Accumulate embeddings
-4. Calculate centroids
+3. Accumulate utterance-level embeddings
+4. Calculate centroid
 5. Register PIN
 6. Save to database
 """
@@ -46,8 +46,8 @@ class EnrollmentSession:
     current_set_index: int = 0
     retry_count: int = 0
     max_retries: int = settings.enrollment_max_retries
-    # Accumulated embeddings: digit -> list of embeddings
-    accumulated_embeddings: dict[str, list[np.ndarray]] = field(default_factory=dict)
+    # Accumulated utterance-level embeddings (one per successful prompt)
+    accumulated_embeddings: list[np.ndarray] = field(default_factory=list)
     error_message: str | None = None
 
 
@@ -70,7 +70,6 @@ class EnrollmentResult:
     """Final enrollment result."""
 
     speaker_id: str
-    registered_digits: list[str]
     has_pin: bool
     status: str
 
@@ -119,14 +118,11 @@ class EnrollmentService:
         if self.speaker_store.speaker_exists(speaker_id):
             raise SpeakerAlreadyExistsError(f"Speaker '{speaker_id}' already exists")
 
-        # Initialize embeddings dict for digits 0-9
-        accumulated = {str(d): [] for d in range(10)}
-
         session = EnrollmentSession(
             speaker_id=speaker_id,
             speaker_name=speaker_name,
             prompts=self._prompt_generator.generate(),
-            accumulated_embeddings=accumulated,
+            accumulated_embeddings=[],
             state=EnrollmentState.PROMPTS_SENT,
         )
 
@@ -155,9 +151,8 @@ class EnrollmentService:
                 audio, expected_prompt
             )
 
-            # ASR matched - accumulate embeddings
-            for digit, embedding in result.digit_embeddings.items():
-                session.accumulated_embeddings[digit].append(embedding)
+            # ASR matched - accumulate utterance embedding
+            session.accumulated_embeddings.append(result.utterance_embedding)
 
             # Move to next set
             session.current_set_index += 1
@@ -212,32 +207,30 @@ class EnrollmentService:
                 message="聞き取れませんでした。もう一度、はっきりとお願いします",
             )
 
-    def compute_centroids(
+    def compute_centroid(
         self,
         session: EnrollmentSession,
-    ) -> dict[str, np.ndarray]:
-        """Compute centroid embeddings for each digit.
+    ) -> np.ndarray:
+        """Compute centroid embedding from accumulated utterance embeddings.
 
         Args:
             session: Enrollment session with accumulated embeddings.
 
         Returns:
-            Dictionary of digit -> centroid embedding.
+            L2-normalized centroid embedding.
 
         Raises:
-            ValueError: If not all digits have samples.
+            ValueError: If no embeddings have been accumulated.
         """
-        centroids: dict[str, np.ndarray] = {}
+        if not session.accumulated_embeddings:
+            raise ValueError("No embeddings accumulated")
 
-        for digit, embeddings in session.accumulated_embeddings.items():
-            if not embeddings:
-                raise ValueError(f"No embeddings for digit '{digit}'")
-
-            # Compute mean of embeddings
-            centroid = np.mean(embeddings, axis=0).astype(np.float32)
-            centroids[digit] = centroid
-
-        return centroids
+        centroid = np.mean(session.accumulated_embeddings, axis=0).astype(np.float32)
+        # L2 normalize
+        norm = np.linalg.norm(centroid)
+        if norm > 0:
+            centroid = centroid / norm
+        return centroid
 
     def register_pin(self, pin: str) -> str:
         """Hash a PIN for storage.
@@ -288,8 +281,8 @@ class EnrollmentService:
         if session.state != EnrollmentState.COMPLETED_VOICE:
             raise ValueError("Voice enrollment is not complete")
 
-        # Compute centroids
-        centroids = self.compute_centroids(session)
+        # Compute centroid
+        centroid = self.compute_centroid(session)
 
         # Hash PIN if provided
         pin_hash = self.register_pin(pin) if pin else None
@@ -301,17 +294,16 @@ class EnrollmentService:
             pin_hash=pin_hash,
         )
 
-        # Add voiceprints
-        self.speaker_store.add_voiceprints_bulk(
+        # Add voiceprint
+        self.speaker_store.add_voiceprint(
             speaker_id=session.speaker_id,
-            embeddings=centroids,
+            embedding=centroid,
         )
 
         session.state = EnrollmentState.COMPLETED
 
         return EnrollmentResult(
             speaker_id=session.speaker_id,
-            registered_digits=list(centroids.keys()),
             has_pin=pin_hash is not None,
             status="registered",
         )

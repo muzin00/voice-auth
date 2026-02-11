@@ -2,13 +2,13 @@
 
 Manages the verification flow:
 1. Generate verification prompt
-2. Process audio and compare with registered voiceprints
-3. Calculate similarity scores
+2. Process audio and compare with registered voiceprint
+3. Calculate similarity score
 4. Authenticate or fallback to PIN
 """
 
 import hashlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 from voiceauth.domain.prompt_generator import generate_verification_prompt
@@ -41,7 +41,6 @@ class VerifySession:
     asr_result: str = ""
     asr_matched: bool = False
     voice_similarity: float | None = None
-    digit_scores: dict[str, float] = field(default_factory=dict)
     can_fallback_to_pin: bool = False
     auth_method: str | None = None
     error_message: str | None = None
@@ -56,7 +55,6 @@ class VerifyResult:
     asr_result: str
     asr_matched: bool
     voice_similarity: float | None
-    digit_scores: dict[str, float] | None
     can_fallback_to_pin: bool
     auth_method: str | None
     message: str
@@ -128,7 +126,7 @@ class VerifyService:
         session: VerifySession,
         audio_data: bytes,
     ) -> VerifyResult:
-        """Verify speaker voice against registered voiceprints.
+        """Verify speaker voice against registered voiceprint.
 
         Args:
             session: Current verification session.
@@ -138,17 +136,15 @@ class VerifyService:
             VerifyResult with verification outcome.
         """
         try:
-            # Get registered voiceprints
-            registered_embeddings = self.speaker_store.get_voiceprints(
-                session.speaker_id
-            )
+            # Get registered voiceprint
+            registered_embedding = self.speaker_store.get_voiceprint(session.speaker_id)
 
             # Convert and process audio
             audio, _ = self.audio_processor.process_webm(audio_data)
             result = self.audio_processor.verify_audio(
                 audio=audio,
                 expected_prompt=session.prompt,
-                registered_embeddings=registered_embeddings,
+                registered_embedding=registered_embedding,
             )
 
             # Update session state
@@ -164,15 +160,13 @@ class VerifyService:
                     asr_result=result.asr_text,
                     asr_matched=False,
                     voice_similarity=None,
-                    digit_scores=None,
                     can_fallback_to_pin=session.can_fallback_to_pin,
                     auth_method=None,
                     message="発話内容がプロンプトと一致しません",
                 )
 
             # ASR matched, check voice similarity
-            session.voice_similarity = result.average_score
-            session.digit_scores = result.digit_scores
+            session.voice_similarity = result.similarity_score
 
             if result.authenticated:
                 # Voice authentication successful
@@ -183,8 +177,7 @@ class VerifyService:
                     speaker_id=session.speaker_id,
                     asr_result=result.asr_text,
                     asr_matched=True,
-                    voice_similarity=result.average_score,
-                    digit_scores=result.digit_scores,
+                    voice_similarity=result.similarity_score,
                     can_fallback_to_pin=False,
                     auth_method="voice",
                     message="認証成功",
@@ -197,8 +190,7 @@ class VerifyService:
                     speaker_id=session.speaker_id,
                     asr_result=result.asr_text,
                     asr_matched=True,
-                    voice_similarity=result.average_score,
-                    digit_scores=result.digit_scores,
+                    voice_similarity=result.similarity_score,
                     can_fallback_to_pin=session.can_fallback_to_pin,
                     auth_method=None,
                     message="声紋が一致しません",
@@ -213,7 +205,6 @@ class VerifyService:
                 asr_result="",
                 asr_matched=False,
                 voice_similarity=None,
-                digit_scores=None,
                 can_fallback_to_pin=session.can_fallback_to_pin,
                 auth_method=None,
                 message=f"認証処理中にエラーが発生しました: {e}",
@@ -241,7 +232,6 @@ class VerifyService:
                 asr_result=session.asr_result,
                 asr_matched=session.asr_matched,
                 voice_similarity=session.voice_similarity,
-                digit_scores=session.digit_scores,
                 can_fallback_to_pin=False,
                 auth_method=None,
                 message="PIN認証は利用できません",
@@ -258,7 +248,6 @@ class VerifyService:
                 asr_result=session.asr_result,
                 asr_matched=session.asr_matched,
                 voice_similarity=session.voice_similarity,
-                digit_scores=session.digit_scores,
                 can_fallback_to_pin=False,
                 auth_method=None,
                 message="PINが登録されていません",
@@ -276,7 +265,6 @@ class VerifyService:
                 asr_result=session.asr_result,
                 asr_matched=session.asr_matched,
                 voice_similarity=session.voice_similarity,
-                digit_scores=session.digit_scores,
                 can_fallback_to_pin=False,
                 auth_method="pin",
                 message="PIN認証成功",
@@ -289,7 +277,6 @@ class VerifyService:
                 asr_result=session.asr_result,
                 asr_matched=session.asr_matched,
                 voice_similarity=session.voice_similarity,
-                digit_scores=session.digit_scores,
                 can_fallback_to_pin=True,  # Allow retry
                 auth_method=None,
                 message="PINが一致しません",

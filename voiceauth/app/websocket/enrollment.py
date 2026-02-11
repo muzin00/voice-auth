@@ -85,14 +85,12 @@ def create_asr_result_response(
 
 def create_enrollment_complete_response(
     speaker_id: str,
-    registered_digits: list[str],
     has_pin: bool,
 ) -> dict[str, Any]:
     """Create enrollment complete response message."""
     return {
         "type": "enrollment_complete",
         "speaker_id": speaker_id,
-        "registered_digits": registered_digits,
         "has_pin": has_pin,
         "status": "registered",
     }
@@ -125,11 +123,6 @@ def get_audio_processor() -> Any:
             return self.converter.webm_to_pcm(webm_data)
 
         def process_enrollment_audio(self, audio: Any, expected_prompt: str) -> Any:
-            from voiceauth.engine.asr import (
-                extract_digit_timestamps,
-                segment_by_timestamps,
-            )
-
             # Run ASR
             asr_result = self.asr.recognize(audio)
 
@@ -139,24 +132,18 @@ def get_audio_processor() -> Any:
                     f"Expected '{expected_prompt}', got '{asr_result.normalized_text}'"
                 )
 
-            # Get timestamps and segment
-            timestamps = extract_digit_timestamps(asr_result)
-            segments = segment_by_timestamps(audio, timestamps)
-
-            # Extract embeddings per digit
-            embeddings = {}
-            for seg in segments:
-                embedding = self.voiceprint.extract(seg.audio)
-                embeddings[seg.digit] = embedding
+            # Extract speech-only audio via VAD, then compute embedding
+            speech_audio = self.vad.extract_speech(audio)
+            embedding = self.voiceprint.extract(speech_audio)
 
             # Create result object
             class ProcessingResult:
                 def __init__(
-                    self, text: str, digits: str, digit_embeddings: dict
+                    self, text: str, digits: str, utterance_embedding: Any
                 ) -> None:
                     self._asr_text = text
                     self._digits = digits
-                    self._digit_embeddings = digit_embeddings
+                    self._utterance_embedding = utterance_embedding
 
                 @property
                 def asr_text(self) -> str:
@@ -167,11 +154,11 @@ def get_audio_processor() -> Any:
                     return self._digits
 
                 @property
-                def digit_embeddings(self) -> dict:
-                    return self._digit_embeddings
+                def utterance_embedding(self) -> Any:
+                    return self._utterance_embedding
 
             return ProcessingResult(
-                asr_result.text, asr_result.normalized_text, embeddings
+                asr_result.text, asr_result.normalized_text, embedding
             )
 
     return AudioProcessorWrapper()
@@ -377,7 +364,6 @@ async def enrollment_websocket(websocket: WebSocket) -> None:
                     websocket,
                     create_enrollment_complete_response(
                         speaker_id=result.speaker_id,
-                        registered_digits=result.registered_digits,
                         has_pin=result.has_pin,
                     ),
                 )

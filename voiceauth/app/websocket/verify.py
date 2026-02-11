@@ -56,7 +56,6 @@ def create_verify_result_response(
     asr_result: str,
     asr_matched: bool,
     voice_similarity: float | None,
-    digit_scores: dict[str, float] | None,
     can_fallback_to_pin: bool,
     auth_method: str | None,
     message: str,
@@ -69,7 +68,6 @@ def create_verify_result_response(
         "asr_result": asr_result,
         "asr_matched": asr_matched,
         "voice_similarity": voice_similarity,
-        "digit_scores": digit_scores,
         "message": message,
     }
 
@@ -105,7 +103,6 @@ def get_audio_processor() -> Any:
             self.asr = get_asr()
             self.voiceprint = get_voiceprint()
             self.similarity_threshold = domain_settings.similarity_threshold
-            self.per_digit_min_threshold = domain_settings.per_digit_min_threshold
 
         def process_webm(self, webm_data: bytes) -> tuple[Any, int]:
             return self.converter.webm_to_pcm(webm_data)
@@ -114,13 +111,8 @@ def get_audio_processor() -> Any:
             self,
             audio: Any,
             expected_prompt: str,
-            registered_embeddings: dict[str, Any],
+            registered_embedding: Any,
         ) -> Any:
-            from voiceauth.engine.asr import (
-                extract_digit_timestamps,
-                segment_by_timestamps,
-            )
-
             # Run ASR
             asr_result = self.asr.recognize(audio)
 
@@ -133,8 +125,7 @@ def get_audio_processor() -> Any:
                     def __init__(self) -> None:
                         self._asr_text = asr_result.normalized_text
                         self._asr_matched = False
-                        self._digit_scores: dict[str, float] = {}
-                        self._average_score = 0.0
+                        self._similarity_score = 0.0
                         self._authenticated = False
 
                     @property
@@ -146,12 +137,8 @@ def get_audio_processor() -> Any:
                         return self._asr_matched
 
                     @property
-                    def digit_scores(self) -> dict[str, float]:
-                        return self._digit_scores
-
-                    @property
-                    def average_score(self) -> float:
-                        return self._average_score
+                    def similarity_score(self) -> float:
+                        return self._similarity_score
 
                     @property
                     def authenticated(self) -> bool:
@@ -159,48 +146,26 @@ def get_audio_processor() -> Any:
 
                 return VerificationResult()
 
-            # Get timestamps and segment
-            timestamps = extract_digit_timestamps(asr_result)
-            segments = segment_by_timestamps(audio, timestamps)
+            # Extract speech-only audio via VAD, then compute embedding
+            speech_audio = self.vad.extract_speech(audio)
+            embedding = self.voiceprint.extract(speech_audio)
 
-            # Compare embeddings
-            digit_scores: dict[str, float] = {}
-            for seg in segments:
-                if seg.digit in registered_embeddings:
-                    embedding = self.voiceprint.extract(seg.audio)
-                    score = cosine_similarity(
-                        embedding, registered_embeddings[seg.digit]
-                    )
-                    digit_scores[seg.digit] = float(score)
+            # Compare with registered embedding
+            score = float(cosine_similarity(embedding, registered_embedding))
 
-            # Calculate average score
-            if digit_scores:
-                average_score = sum(digit_scores.values()) / len(digit_scores)
-            else:
-                average_score = 0.0
-
-            # Check per-digit minimum threshold
-            all_digits_pass = all(
-                score >= self.per_digit_min_threshold for score in digit_scores.values()
-            )
-
-            authenticated = (
-                all_digits_pass and average_score >= self.similarity_threshold
-            )
+            authenticated = score >= self.similarity_threshold
 
             class VerificationResult:
                 def __init__(
                     self,
                     text: str,
                     matched: bool,
-                    scores: dict[str, float],
-                    avg: float,
+                    sim_score: float,
                     auth: bool,
                 ) -> None:
                     self._asr_text = text
                     self._asr_matched = matched
-                    self._digit_scores = scores
-                    self._average_score = avg
+                    self._similarity_score = sim_score
                     self._authenticated = auth
 
                 @property
@@ -212,12 +177,8 @@ def get_audio_processor() -> Any:
                     return self._asr_matched
 
                 @property
-                def digit_scores(self) -> dict[str, float]:
-                    return self._digit_scores
-
-                @property
-                def average_score(self) -> float:
-                    return self._average_score
+                def similarity_score(self) -> float:
+                    return self._similarity_score
 
                 @property
                 def authenticated(self) -> bool:
@@ -226,8 +187,7 @@ def get_audio_processor() -> Any:
             return VerificationResult(
                 asr_result.normalized_text,
                 asr_matched,
-                digit_scores,
-                average_score,
+                score,
                 authenticated,
             )
 
@@ -354,7 +314,6 @@ async def verify_websocket(websocket: WebSocket) -> None:
                     asr_result=result.asr_result,
                     asr_matched=result.asr_matched,
                     voice_similarity=result.voice_similarity,
-                    digit_scores=result.digit_scores,
                     can_fallback_to_pin=result.can_fallback_to_pin,
                     auth_method=result.auth_method,
                     message=result.message,
@@ -413,7 +372,6 @@ async def verify_websocket(websocket: WebSocket) -> None:
                         asr_result=result.asr_result,
                         asr_matched=result.asr_matched,
                         voice_similarity=result.voice_similarity,
-                        digit_scores=result.digit_scores,
                         can_fallback_to_pin=result.can_fallback_to_pin,
                         auth_method=result.auth_method,
                         message=result.message,

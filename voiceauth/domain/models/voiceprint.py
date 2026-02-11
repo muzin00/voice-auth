@@ -22,10 +22,9 @@ def _utc_now() -> datetime:
 
 @dataclass
 class Voiceprint:
-    """Voiceprint entity for storing digit-specific voice embeddings."""
+    """Voiceprint entity for storing utterance-level voice embeddings."""
 
     speaker_id: int
-    digit: str  # "0" to "9"
     embedding: bytes  # 512-dim float32 = 2048 bytes
     id: int | None = None
     public_id: str = field(default_factory=_generate_ulid)

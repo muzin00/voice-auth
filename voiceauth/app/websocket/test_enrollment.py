@@ -28,13 +28,11 @@ def mock_audio_processor():
     processor = MagicMock()
     processor.process_webm.return_value = (np.zeros(16000, dtype=np.float32), 16000)
 
-    # Mock processing result
+    # Mock processing result with utterance-level embedding
     mock_result = MagicMock()
     mock_result.asr_text = "1234567890"
     mock_result.digits = "1234567890"
-    mock_result.digit_embeddings = {
-        str(d): np.random.randn(192).astype(np.float32) for d in range(10)
-    }
+    mock_result.utterance_embedding = np.random.randn(192).astype(np.float32)
     processor.process_enrollment_audio.return_value = mock_result
 
     return processor
@@ -46,7 +44,7 @@ def mock_speaker_store():
     store = MagicMock()
     store.speaker_exists.return_value = False
     store.create_speaker.return_value = MagicMock()
-    store.add_voiceprints_bulk.return_value = []
+    store.add_voiceprint.return_value = MagicMock()
     return store
 
 
@@ -223,9 +221,7 @@ class TestEnrollmentWebSocket:
         mock_result = MagicMock()
         mock_result.asr_text = "1234567890"
         mock_result.digits = "1234567890"
-        mock_result.digit_embeddings = {
-            str(d): np.random.randn(192).astype(np.float32) for d in range(10)
-        }
+        mock_result.utterance_embedding = np.random.randn(192).astype(np.float32)
 
         call_count = [0]
 

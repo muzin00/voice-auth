@@ -18,9 +18,9 @@ class VerifyAudioProcessorProtocol(Protocol):
         self,
         audio: np.ndarray,
         expected_prompt: str,
-        registered_embeddings: dict[str, np.ndarray],
+        registered_embedding: np.ndarray,
     ) -> "VerificationResultProtocol":
-        """Verify audio against registered embeddings."""
+        """Verify audio against registered embedding."""
         ...
 
 
@@ -38,13 +38,8 @@ class VerificationResultProtocol(Protocol):
         ...
 
     @property
-    def digit_scores(self) -> dict[str, float]:
-        """Get similarity scores per digit."""
-        ...
-
-    @property
-    def average_score(self) -> float:
-        """Get average similarity score."""
+    def similarity_score(self) -> float:
+        """Get similarity score."""
         ...
 
     @property
@@ -64,6 +59,6 @@ class VerifySpeakerStoreProtocol(Protocol):
         """Get speaker by ID."""
         ...
 
-    def get_voiceprints(self, speaker_id: str) -> dict[str, np.ndarray]:
-        """Get all voiceprints for speaker."""
+    def get_voiceprint(self, speaker_id: str) -> np.ndarray:
+        """Get voiceprint embedding for speaker."""
         ...

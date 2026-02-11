@@ -50,10 +50,10 @@ class SpeakerModel(SQLModel, table=True):
 
 
 class VoiceprintModel(SQLModel, table=True):
-    """Model for storing digit-specific voice embeddings."""
+    """Model for storing utterance-level voice embeddings."""
 
-    __tablename__ = "digit_voiceprints"  # pyright: ignore[reportAssignmentType]
-    __table_args__ = (UniqueConstraint("speaker_id", "digit", name="uq_speaker_digit"),)
+    __tablename__ = "voiceprints"  # pyright: ignore[reportAssignmentType]
+    __table_args__ = (UniqueConstraint("speaker_id", name="uq_speaker_voiceprint"),)
 
     id: int | None = Field(default=None, primary_key=True)
     public_id: str = Field(
@@ -63,7 +63,6 @@ class VoiceprintModel(SQLModel, table=True):
         max_length=26,
     )
     speaker_id: int = Field(foreign_key="speakers.id", index=True)
-    digit: str = Field(max_length=1)  # "0" to "9"
     embedding: bytes = Field()  # 512-dim float32 = 2048 bytes
     created_at: datetime = Field(default_factory=_utc_now)
 

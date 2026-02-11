@@ -82,14 +82,11 @@ class SpeakerStoreProtocol(Protocol):
         """
         ...
 
-    def add_voiceprint(
-        self, speaker_id: str, digit: str, embedding: np.ndarray
-    ) -> Voiceprint:
+    def add_voiceprint(self, speaker_id: str, embedding: np.ndarray) -> Voiceprint:
         """Add or update a voiceprint for a speaker.
 
         Args:
             speaker_id: The speaker's identifier
-            digit: The digit ("0" to "9")
             embedding: numpy array of shape (512,) with float32 dtype
 
         Returns:
@@ -97,50 +94,24 @@ class SpeakerStoreProtocol(Protocol):
         """
         ...
 
-    def add_voiceprints_bulk(
-        self, speaker_id: str, embeddings: dict[str, np.ndarray]
-    ) -> list[Voiceprint]:
-        """Add or update multiple voiceprints for a speaker.
+    def get_voiceprint(self, speaker_id: str) -> np.ndarray:
+        """Get the voiceprint embedding for a speaker.
 
         Args:
             speaker_id: The speaker's identifier
-            embeddings: Dictionary mapping digits to embeddings
-
-        Returns:
-            List of created/updated Voiceprint instances
-        """
-        ...
-
-    def get_voiceprints(self, speaker_id: str) -> dict[str, np.ndarray]:
-        """Get all voiceprints for a speaker.
-
-        Args:
-            speaker_id: The speaker's identifier
-
-        Returns:
-            Dictionary mapping digits to embedding arrays
-        """
-        ...
-
-    def get_voiceprint(self, speaker_id: str, digit: str) -> np.ndarray:
-        """Get a specific voiceprint for a speaker.
-
-        Args:
-            speaker_id: The speaker's identifier
-            digit: The digit ("0" to "9")
 
         Returns:
             numpy array of shape (512,) with float32 dtype
         """
         ...
 
-    def has_complete_voiceprints(self, speaker_id: str) -> bool:
-        """Check if a speaker has voiceprints for all digits (0-9).
+    def has_voiceprint(self, speaker_id: str) -> bool:
+        """Check if a speaker has a voiceprint.
 
         Args:
             speaker_id: The speaker's identifier
 
         Returns:
-            True if speaker has all 10 digit voiceprints
+            True if speaker has a voiceprint
         """
         ...

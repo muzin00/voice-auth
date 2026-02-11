@@ -35,7 +35,6 @@ class EngineSettings(BaseSettings):
     speaker_model_file: str = "3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx"
     speaker_num_threads: int = 1
     speaker_similarity_threshold: float = 0.85
-    speaker_per_digit_min_threshold: float = 0.75
 
     # Audio settings
     target_sample_rate: int = 16000

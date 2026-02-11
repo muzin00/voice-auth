@@ -298,18 +298,6 @@ function showVerifyResult(data) {
         </div>`;
     }
 
-    if (data.digit_scores) {
-        html += '<div class="mt-2 pt-2 border-t">';
-        html += '<p class="text-gray-500 mb-1">数字別スコア:</p>';
-        html += '<div class="flex flex-wrap gap-2">';
-        for (const [digit, score] of Object.entries(data.digit_scores)) {
-            const pct = (score * 100).toFixed(0);
-            const color = score >= 0.75 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-            html += `<span class="px-2 py-1 rounded ${color}">${digit}: ${pct}%</span>`;
-        }
-        html += '</div></div>';
-    }
-
     html += '</div>';
     content.innerHTML = html;
 

@@ -47,7 +47,6 @@ class SpeakerStore:
             id=model.id,
             public_id=model.public_id,
             speaker_id=model.speaker_id,
-            digit=model.digit,
             embedding=model.embedding,
             created_at=model.created_at,
         )
@@ -184,14 +183,11 @@ class SpeakerStore:
             raise SpeakerNotFoundError(f"Speaker '{speaker_id}' not found")
         return model
 
-    def add_voiceprint(
-        self, speaker_id: str, digit: str, embedding: np.ndarray
-    ) -> Voiceprint:
+    def add_voiceprint(self, speaker_id: str, embedding: np.ndarray) -> Voiceprint:
         """Add or update a voiceprint for a speaker.
 
         Args:
             speaker_id: The speaker's identifier
-            digit: The digit ("0" to "9")
             embedding: numpy array of shape (512,) with float32 dtype
 
         Returns:
@@ -205,7 +201,6 @@ class SpeakerStore:
         # Check for existing voiceprint
         statement = select(VoiceprintModel).where(
             VoiceprintModel.speaker_id == speaker_model.id,
-            VoiceprintModel.digit == digit,
         )
         existing = self.session.exec(statement).first()
 
@@ -222,7 +217,6 @@ class SpeakerStore:
         # Create new voiceprint
         model = VoiceprintModel(
             speaker_id=speaker_model.id,
-            digit=digit,
             embedding=VoiceprintModel.serialize_embedding(embedding),
         )
         self.session.add(model)
@@ -230,114 +224,44 @@ class SpeakerStore:
         self.session.refresh(model)
         return self._to_domain_voiceprint(model)
 
-    def add_voiceprints_bulk(
-        self, speaker_id: str, embeddings: dict[str, np.ndarray]
-    ) -> list[Voiceprint]:
-        """Add or update multiple voiceprints for a speaker.
+    def get_voiceprint(self, speaker_id: str) -> np.ndarray:
+        """Get the voiceprint embedding for a speaker.
 
         Args:
             speaker_id: The speaker's identifier
-            embeddings: Dictionary mapping digits to embeddings
-
-        Returns:
-            List of created/updated Voiceprint instances
-
-        Raises:
-            SpeakerNotFoundError: If speaker not found
-        """
-        speaker_model = self._get_speaker_model(speaker_id)
-        voiceprints: list[VoiceprintModel] = []
-
-        for digit, embedding in embeddings.items():
-            # Check for existing voiceprint
-            statement = select(VoiceprintModel).where(
-                VoiceprintModel.speaker_id == speaker_model.id,
-                VoiceprintModel.digit == digit,
-            )
-            existing = self.session.exec(statement).first()
-
-            if existing:
-                # Update existing
-                existing.embedding = VoiceprintModel.serialize_embedding(embedding)
-                existing.public_id = str(ulid.new())
-                existing.created_at = datetime.now(UTC)
-                self.session.add(existing)
-                voiceprints.append(existing)
-            else:
-                # Create new
-                model = VoiceprintModel(
-                    speaker_id=speaker_model.id,
-                    digit=digit,
-                    embedding=VoiceprintModel.serialize_embedding(embedding),
-                )
-                self.session.add(model)
-                voiceprints.append(model)
-
-        self.session.commit()
-        for vp in voiceprints:
-            self.session.refresh(vp)
-        return [self._to_domain_voiceprint(vp) for vp in voiceprints]
-
-    def get_voiceprints(self, speaker_id: str) -> dict[str, np.ndarray]:
-        """Get all voiceprints for a speaker.
-
-        Args:
-            speaker_id: The speaker's identifier
-
-        Returns:
-            Dictionary mapping digits to embedding arrays
-
-        Raises:
-            SpeakerNotFoundError: If speaker not found
-        """
-        speaker_model = self._get_speaker_model(speaker_id)
-        statement = select(VoiceprintModel).where(
-            VoiceprintModel.speaker_id == speaker_model.id
-        )
-        results = self.session.exec(statement).all()
-        return {
-            vp.digit: VoiceprintModel.deserialize_embedding(vp.embedding)
-            for vp in results
-        }
-
-    def get_voiceprint(self, speaker_id: str, digit: str) -> np.ndarray:
-        """Get a specific voiceprint for a speaker.
-
-        Args:
-            speaker_id: The speaker's identifier
-            digit: The digit ("0" to "9")
 
         Returns:
             numpy array of shape (512,) with float32 dtype
 
         Raises:
             SpeakerNotFoundError: If speaker not found
-            VoiceprintNotFoundError: If voiceprint for digit not found
+            VoiceprintNotFoundError: If voiceprint not found
         """
         speaker_model = self._get_speaker_model(speaker_id)
         statement = select(VoiceprintModel).where(
             VoiceprintModel.speaker_id == speaker_model.id,
-            VoiceprintModel.digit == digit,
         )
         model = self.session.exec(statement).first()
         if model is None:
             raise VoiceprintNotFoundError(
-                f"Voiceprint for digit '{digit}' not found for speaker '{speaker_id}'"
+                f"Voiceprint not found for speaker '{speaker_id}'"
             )
         return VoiceprintModel.deserialize_embedding(model.embedding)
 
-    def has_complete_voiceprints(self, speaker_id: str) -> bool:
-        """Check if a speaker has voiceprints for all digits (0-9).
+    def has_voiceprint(self, speaker_id: str) -> bool:
+        """Check if a speaker has a voiceprint.
 
         Args:
             speaker_id: The speaker's identifier
 
         Returns:
-            True if speaker has all 10 digit voiceprints
+            True if speaker has a voiceprint
 
         Raises:
             SpeakerNotFoundError: If speaker not found
         """
-        voiceprints = self.get_voiceprints(speaker_id)
-        required_digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-        return set(voiceprints.keys()) == required_digits
+        speaker_model = self._get_speaker_model(speaker_id)
+        statement = select(VoiceprintModel).where(
+            VoiceprintModel.speaker_id == speaker_model.id,
+        )
+        return self.session.exec(statement).first() is not None

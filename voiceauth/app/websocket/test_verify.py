@@ -47,10 +47,8 @@ def mock_speaker_store():
     )
     store.get_speaker_by_id.return_value = mock_speaker
 
-    # Create mock voiceprints
-    store.get_voiceprints.return_value = {
-        str(d): np.random.randn(192).astype(np.float32) for d in range(10)
-    }
+    # Create mock voiceprint (single utterance-level embedding)
+    store.get_voiceprint.return_value = np.random.randn(192).astype(np.float32)
 
     return store
 
@@ -59,16 +57,14 @@ def create_mock_verification_result(
     asr_text: str,
     asr_matched: bool,
     authenticated: bool,
-    digit_scores: dict[str, float] | None = None,
-    average_score: float = 0.0,
+    similarity_score: float = 0.0,
 ):
     """Create a mock verification result."""
     result = MagicMock()
     result.asr_text = asr_text
     result.asr_matched = asr_matched
     result.authenticated = authenticated
-    result.digit_scores = digit_scores or {}
-    result.average_score = average_score
+    result.similarity_score = similarity_score
     return result
 
 
@@ -85,8 +81,7 @@ class TestVerifyWebSocket:
                 asr_text="1234",
                 asr_matched=True,
                 authenticated=True,
-                digit_scores={"1": 0.95, "2": 0.92, "3": 0.88, "4": 0.91},
-                average_score=0.915,
+                similarity_score=0.915,
             )
         )
 
@@ -144,8 +139,7 @@ class TestVerifyWebSocket:
                 asr_text="1234",
                 asr_matched=True,
                 authenticated=False,
-                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-                average_score=0.615,
+                similarity_score=0.615,
             )
         )
 
@@ -344,8 +338,7 @@ class TestVerifyWebSocket:
                 asr_text="1234",
                 asr_matched=True,
                 authenticated=False,
-                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-                average_score=0.615,
+                similarity_score=0.615,
             )
         )
 
@@ -409,8 +402,7 @@ class TestVerifyWebSocket:
                 asr_text="1234",
                 asr_matched=True,
                 authenticated=False,
-                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-                average_score=0.615,
+                similarity_score=0.615,
             )
         )
 
