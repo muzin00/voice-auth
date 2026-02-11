@@ -52,4 +52,4 @@ install-dev:
 # Setup development environment (install deps + pre-commit hooks)
 setup:
 	uv sync --group dev
-	uv run pre-commit install
+	bash scripts/setup-hooks.sh
