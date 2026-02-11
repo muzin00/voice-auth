@@ -96,7 +96,9 @@ jobs:
           image: ${{ needs.build-and-push.outputs.image }}
           flags: |
             --allow-unauthenticated
+            --port=8000
             --memory=2Gi
-            --cpu=1
+            --cpu=2
             --min-instances=0
             --max-instances=1
+            --startup-cpu-boost
