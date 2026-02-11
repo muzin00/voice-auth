@@ -70,7 +70,9 @@ CMD ["python", "main.py"]
 
 # --- Stage 6: Production ---
 FROM runtime-base AS prod
-ENV PORT=8000
+ENV PORT=8000 \
+    DB_SQLITE_PATH=/var/lib/voiceauth/db/voiceauth.db \
+    ENGINE_MODELS_DIR=/var/lib/voiceauth/models
 
 # Copy virtual environment from builder
 COPY --from=builder /app/.venv /app/.venv
@@ -86,6 +88,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
 # Copy pre-downloaded models
-COPY --from=model-downloader /app/models /app/models
+COPY --from=model-downloader /app/models /var/lib/voiceauth/models
 
 CMD ["python", "main.py"]

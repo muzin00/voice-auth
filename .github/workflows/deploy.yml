@@ -104,5 +104,5 @@ jobs:
             --cpu-boost
             --execution-environment=gen2
             --add-volume=name=sqlite-vol,type=cloud-storage,bucket=voice-auth-dev-sqlite
-            --add-volume-mount=volume=sqlite-vol,mount-path=/sqlite_data
-            --set-env-vars=DB_SQLITE_PATH=/sqlite_data/voiceauth.db
+            --add-volume-mount=volume=sqlite-vol,mount-path=/var/lib/voiceauth/db
+            --set-env-vars=DB_SQLITE_PATH=/var/lib/voiceauth/db/voiceauth.db,ENGINE_MODELS_DIR=/var/lib/voiceauth/models

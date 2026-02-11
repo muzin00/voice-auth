@@ -2,9 +2,10 @@
 set -e
 
 # Download models if not present
-if [ ! -f "/app/models/silero_vad.onnx" ]; then
+MODELS_DIR="${ENGINE_MODELS_DIR:-/var/lib/voiceauth/models}"
+if [ ! -f "${MODELS_DIR}/silero_vad.onnx" ]; then
     echo "=== Models not found. Downloading... ==="
-    python /app/scripts/download_models.py --models-dir /app/models
+    python /app/scripts/download_models.py --models-dir "${MODELS_DIR}"
     echo "=== Model download complete ==="
 fi
 

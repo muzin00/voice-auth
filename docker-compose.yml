@@ -10,16 +10,21 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - API_HOST=0.0.0.0
       - API_PORT=8000
-      - DB_SQLITE_PATH=/app/sqlite_data/voiceauth.db
+      - DB_SQLITE_PATH=/var/lib/voiceauth/db/voiceauth.db
+      - ENGINE_MODELS_DIR=/var/lib/voiceauth/models
     ports:
       - "8000:8000"
     volumes:
       - .:/app
-      - ./volumes/venv:/app/.venv
-      - ./volumes/models:/app/models
-      - ./volumes/sqlite:/app/sqlite_data
+      - venv_data:/app/.venv
+      - model_data:/var/lib/voiceauth/models
+      - sqlite_data:/var/lib/voiceauth/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+volumes:
+  venv_data:
+  model_data:
+  sqlite_data:
