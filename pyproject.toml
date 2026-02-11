@@ -1,22 +1,28 @@
 [project]
-name = "vca-server"
-version = "0.1.0"
-description = "VCA Server"
+name = "voiceauth"
+version = "1.0.0"
+description = "Voice Authentication Server"
 requires-python = ">=3.11,<3.12"
-dependencies = ["vca-api", "vca-infra", "vca-auth", "vca-engine"]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "sqlmodel>=0.0.22",
+    "pydantic-settings>=2.7.0",
+    "sherpa-onnx>=1.10.0",
+    "numpy>=1.26.0",
+    "av>=14.0.0",
+    "ulid-py>=1.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["voiceauth"]
 
 [tool.uv]
-package = false
-
-[tool.uv.workspace]
-members = ["packages/*"]
-exclude = ["packages/__pycache__"]
-
-[tool.uv.sources]
-vca-api = { workspace = true }
-vca-infra = { workspace = true }
-vca-auth = { workspace = true }
-vca-engine = { workspace = true }
+package = true
 
 [dependency-groups]
 dev = [
@@ -26,16 +32,17 @@ dev = [
     "coverage>=7.6.10",
     "pre-commit>=4.1.0",
     "pytest-cov>=7.0.0",
+    "alembic>=1.14.0",
 ]
 
 [tool.pyright]
 typeCheckingMode = "basic"
-exclude = ["venv", ".venv", "alembic"]
+exclude = ["venv", ".venv", "alembic", "packages"]
 reportMissingTypeStubs = false
 
 [tool.ruff]
 target-version = "py311"
-exclude = ["alembic"]
+exclude = ["alembic", "packages"]
 
 [tool.ruff.lint]
 select = [
@@ -54,12 +61,12 @@ ignore = [
 extend-safe-fixes = ["F401"]  # Allow auto-removal of unused imports
 
 [tool.pytest.ini_options]
-testpaths = ["packages"]
+testpaths = ["voiceauth"]
 pythonpath = ["."]
 addopts = ["--import-mode=importlib"]
 
 [tool.coverage.run]
-source = ["packages"]
+source = ["voiceauth"]
 
 [tool.coverage.report]
 show_missing = true
