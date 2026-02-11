@@ -221,7 +221,7 @@ class SpeakerStore:
 
         # Create new voiceprint
         model = VoiceprintModel(
-            speaker_id=speaker_model.id,  # type: ignore[arg-type]
+            speaker_id=speaker_model.id,
             digit=digit,
             embedding=VoiceprintModel.serialize_embedding(embedding),
         )
@@ -266,7 +266,7 @@ class SpeakerStore:
             else:
                 # Create new
                 model = VoiceprintModel(
-                    speaker_id=speaker_model.id,  # type: ignore[arg-type]
+                    speaker_id=speaker_model.id,
                     digit=digit,
                     embedding=VoiceprintModel.serialize_embedding(embedding),
                 )

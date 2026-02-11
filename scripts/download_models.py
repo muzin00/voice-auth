@@ -65,7 +65,6 @@ def download_model(
         repo_id=repo_id,
         filename=filename,
         local_dir=target_dir,
-        local_dir_use_symlinks=False,
     )
     print(f"  [OK] {filename}")
     return Path(downloaded_path)

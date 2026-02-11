@@ -29,7 +29,7 @@ package = true
 [dependency-groups]
 dev = [
     "pytest>=8.3.4",
-    "pyright>=1.1.408",
+    "ty>=0.0.1a7",
     "ruff>=0.9.6",
     "coverage>=7.6.10",
     "pre-commit>=4.1.0",
@@ -37,10 +37,16 @@ dev = [
     "alembic>=1.14.0",
 ]
 
-[tool.pyright]
-typeCheckingMode = "basic"
-exclude = ["venv", ".venv", "alembic", "packages"]
-reportMissingTypeStubs = false
+[tool.ty.src]
+exclude = ["alembic", "packages"]
+
+# Ignore errors caused by third-party library type stubs and ty's limited narrowing
+[tool.ty.rules]
+missing-argument = "ignore"  # ulid-py's ULID() type stub is incorrect
+possibly-missing-attribute = "warn"  # various library type issues
+invalid-return-type = "warn"  # ty's type narrowing is limited
+not-iterable = "ignore"  # dict literal type inference issues
+invalid-argument-type = "ignore"  # dict literal type inference issues
 
 [tool.ruff]
 target-version = "py311"

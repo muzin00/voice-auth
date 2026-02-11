@@ -18,7 +18,7 @@ format:
 
 # Type check
 typecheck:
-	uv run pyright
+	uv run ty check
 
 # Run server
 run:
