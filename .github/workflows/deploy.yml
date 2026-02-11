@@ -4,7 +4,6 @@ on:
     branches: [main]
     tags: ["v*"]
 env:
-  # TODO: Replace with your GCP settings
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   GCP_REGION: ${{ vars.GCP_REGION || 'asia-northeast1' }}
   ARTIFACT_REGISTRY: ${{ vars.GCP_REGION || 'asia-northeast1' }}-docker.pkg.dev
@@ -19,6 +18,28 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
     steps:
+      - name: Check required secrets and variables
+        run: |
+          errors=0
+          if [ -z "$WIF_PROVIDER" ]; then
+            echo "::error::Secret 'GCP_WORKLOAD_IDENTITY_PROVIDER' is not set. Configure it in Settings > Secrets and variables > Actions > Secrets."
+            errors=$((errors + 1))
+          fi
+          if [ -z "$SA" ]; then
+            echo "::error::Secret 'GCP_SERVICE_ACCOUNT' is not set. Configure it in Settings > Secrets and variables > Actions > Secrets."
+            errors=$((errors + 1))
+          fi
+          if [ -z "$PROJECT_ID" ]; then
+            echo "::error::Variable 'GCP_PROJECT_ID' is not set. Configure it in Settings > Secrets and variables > Actions > Variables."
+            errors=$((errors + 1))
+          fi
+          if [ "$errors" -gt 0 ]; then
+            exit 1
+          fi
+        env:
+          WIF_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SA: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       - uses: actions/checkout@v4
       - name: Authenticate to Google Cloud
         id: auth
