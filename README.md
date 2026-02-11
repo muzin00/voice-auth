@@ -1,93 +1,78 @@
-# VCA Server
+# VoiceAuth
 
-## ローカル開発
+音声によるランダムプロンプト認証システム。声紋とASR（音声認識）を組み合わせた二要素認証を提供します。
+
+## 特徴
+
+- **声紋認証**: CAM++ による話者識別（192次元ベクトル）
+- **ASR検証**: SenseVoice による発話内容の検証
+- **ランダムプロンプト**: 毎回異なる数字列を発話させることでリプレイ攻撃を防止
+- **CPU推論**: sherpa-onnx による低遅延な推論（GPU不要）
+
+## クイックスタート
+
+```bash
+# リポジトリをクローン
+git clone <repository-url>
+cd voice-auth
+
+# 環境変数を設定
+cp .env.example .env
+
+# 起動
+docker compose up -d
+
+# ブラウザでデモ画面にアクセス
+open http://localhost:8000/demo/
+```
+
+## 開発
+
+```bash
+# テスト実行
+make test
+
+# 型チェック
+make typecheck
+
+# Lint & Format
+make format
+```
 
 ### データベース選択
 
 環境変数`DB_TYPE`でPostgreSQLまたはSQLiteを選択できます（デフォルト: SQLite）。
 
-**SQLiteを使う場合（デフォルト）:**
-
 ```bash
-# .envファイル
+# SQLite（デフォルト）
 DB_TYPE=sqlite
-
-# 起動（dbコンテナなし、軽量）
 docker compose up -d
-```
 
-**PostgreSQLを使う場合:**
-
-```bash
-# .envファイル
+# PostgreSQL
 DB_TYPE=postgres
-
-# 起動（dbコンテナも起動）
 docker compose --profile postgres up -d
 ```
 
-### 起動
+## ドキュメント
 
-```bash
-docker compose up -d
-```
+| ドキュメント | 内容 |
+|-------------|------|
+| [要件定義書](docs/requirements.md) | 機能要件・非機能要件・セキュリティ要件 |
+| [アーキテクチャガイド](docs/architecture-guide.md) | 設計・ディレクトリ構成・データモデル |
+| [API仕様書](docs/api-specification.md) | WebSocket/REST API詳細 |
+| [開発ガイド](docs/development-guide.md) | 開発方針（TDD, Outside-In） |
+| [デプロイガイド](docs/deployment.md) | GCP Cloud Runへのデプロイ |
 
-### テスト実行
+## 技術スタック
 
-> **注意**: pytestはパッケージごとに実行してください（conftest.pyの衝突を避けるため）
+| コンポーネント | 技術 |
+|---------------|------|
+| フレームワーク | FastAPI |
+| 音声区間検出 | sherpa-onnx (Silero VAD) |
+| 音声認識 | sherpa-onnx (SenseVoice) |
+| 声紋抽出 | sherpa-onnx (CAM++) |
+| データベース | PostgreSQL / SQLite |
 
-```bash
-# 全パッケージのテストを実行
-make test
+## ライセンス
 
-# 特定パッケージのテストを実行
-make test-auth
-make test-engine
-make test-infra
-```
-
-### 型チェック
-
-```bash
-# ローカル環境
-make typecheck
-
-# Docker環境
-docker compose exec app sh -c "uv sync && make typecheck"
-```
-
-### Lint & Format
-
-```bash
-# ローカル環境
-make lint     # Lintチェックのみ
-make format   # Lint修正 + フォーマット
-
-# Docker環境
-docker compose exec app sh -c "uv sync && make format"
-
-# pre-commit（コミット前の一括チェック）
-uv run pre-commit run -a
-```
-
-### API動作確認
-
-```bash
-# 声紋登録（WAV形式の音声ファイルを使用）
-AUDIO_BASE64=$(base64 -i samples/sample1.wav)
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"speaker_id\": \"test_user\", \"audio_data\": \"$AUDIO_BASE64\", \"audio_format\": \"wav\"}"
-
-# 声紋認証
-AUDIO_BASE64=$(base64 -i samples/sample1.wav)
-curl -X POST http://localhost:8000/api/v1/auth/verify \
-  -H "Content-Type: application/json" \
-  -d "{\"speaker_id\": \"test_user\", \"audio_data\": \"$AUDIO_BASE64\", \"audio_format\": \"wav\"}"
-```
-
----
-
-## デプロイ
-
-GCP Cloud Run へのデプロイ手順は [deployment/README.md](deployment/README.md) を参照してください。
+MIT License
