@@ -1,13 +1,74 @@
-__pycache__
-*.egg-info
-*.pyc
-.mypy_cache
-.coverage
-htmlcov
-.cache
-.venv
-.env
-.ruff_cache
-.pytest_cache
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
 dist/
 build/
+eggs/
+.eggs/
+*.manifest
+*.spec
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+
+# Type checking
+.mypy_cache/
+.pyright/
+
+# Linting
+.ruff_cache/
+
+# Build
+*.egg-info/
+
+# Environment
+.env
+.env.local
+
+# Data
+data/
+*.db
+*.sqlite
+
+# Models (downloaded at runtime)
+models/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Deprecated packages directory (remove after migration)
+packages/

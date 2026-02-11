@@ -4,7 +4,7 @@ services:
     restart: always
     profiles: ["postgres"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${VOICEAUTH_DB_POSTGRES_USER} -d ${VOICEAUTH_DB_POSTGRES_DB}"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -15,11 +15,12 @@ services:
       - .env
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_PASSWORD=${VOICEAUTH_DB_POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${VOICEAUTH_DB_POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${VOICEAUTH_DB_POSTGRES_DB?Variable not set}
     ports:
       - "5432:5432"
+
   app:
     build:
       context: .
@@ -32,15 +33,15 @@ services:
     env_file:
       - .env
     environment:
-      - ENVIRONMENT=development
-      - PORT=8000
-      - DB_TYPE=${DB_TYPE:-sqlite}
-      - SQLITE_PATH=/app/data/vca.db
-      - POSTGRES_SERVER=db
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - VOICEAUTH_API_HOST=0.0.0.0
+      - VOICEAUTH_API_PORT=8000
+      - VOICEAUTH_DB_DB_TYPE=${VOICEAUTH_DB_DB_TYPE:-sqlite}
+      - VOICEAUTH_DB_SQLITE_PATH=/app/data/voiceauth.db
+      - VOICEAUTH_DB_POSTGRES_SERVER=db
+      - VOICEAUTH_DB_POSTGRES_PORT=${VOICEAUTH_DB_POSTGRES_PORT:-5432}
+      - VOICEAUTH_DB_POSTGRES_DB=${VOICEAUTH_DB_POSTGRES_DB}
+      - VOICEAUTH_DB_POSTGRES_USER=${VOICEAUTH_DB_POSTGRES_USER}
+      - VOICEAUTH_DB_POSTGRES_PASSWORD=${VOICEAUTH_DB_POSTGRES_PASSWORD}
     ports:
       - "8000:8000"
     volumes:
@@ -53,6 +54,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
 volumes:
   postgres_data:
   sqlite_data:
