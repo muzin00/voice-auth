@@ -271,7 +271,7 @@ gcloud run jobs execute migration-upgrade-sqlite --region asia-northeast1 --wait
 gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
     --project=YOUR_PROJECT_ID \
     --location=asia-northeast1 \
-    --policy=deployment/artifact-registry-cleanup-policy.json
+    --policy=deploy/artifact-registry-cleanup-policy.json
 ```
 
 **設定内容** (`artifact-registry-cleanup-policy.json`):
