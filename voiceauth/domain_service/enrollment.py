@@ -187,7 +187,7 @@ class EnrollmentService:
         session = EnrollmentSession(
             speaker_id=speaker_id,
             speaker_name=speaker_name,
-            prompts=self._prompt_generator.generate_enrollment_prompts(),
+            prompts=self._prompt_generator.generate(),
             accumulated_embeddings=accumulated,
             state=EnrollmentState.PROMPTS_SENT,
         )
