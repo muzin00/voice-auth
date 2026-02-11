@@ -16,7 +16,7 @@ services:
     volumes:
       - .:/app
       - venv_data:/app/.venv
-      - models_data:/app/models
+      - model_data:/app/models
       - sqlite_data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -26,4 +26,4 @@ services:
 volumes:
   sqlite_data:
   venv_data:
-  models_data:
+  model_data:
