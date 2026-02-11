@@ -63,5 +63,8 @@ tmp/
 temp/
 *.tmp
 
+# Docker volumes
+volumes/
+
 # Claude Code
 .claude/settings.local.json
