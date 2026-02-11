@@ -8,7 +8,6 @@ from sqlmodel import Session
 
 from voiceauth.audio import AudioConverter
 from voiceauth.database import SpeakerStore, get_session
-from voiceauth.domain_service import EnrollmentService, VerifyService
 from voiceauth.engine.asr import SenseVoiceASR
 from voiceauth.engine.vad import SileroVAD
 from voiceauth.engine.voiceprint import CAMPPVoiceprint

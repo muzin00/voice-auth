@@ -107,9 +107,7 @@ class AudioConverter:
             container.close()
 
             if not samples_list:
-                raise AudioConversionError(
-                    f"No audio samples decoded from {file_path}"
-                )
+                raise AudioConversionError(f"No audio samples decoded from {file_path}")
 
             samples = np.concatenate(samples_list)
             samples = samples.astype(np.float32) / 32768.0

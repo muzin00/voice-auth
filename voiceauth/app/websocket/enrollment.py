@@ -124,10 +124,11 @@ def get_audio_processor() -> Any:
         def process_webm(self, webm_data: bytes) -> tuple[Any, int]:
             return self.converter.webm_to_pcm(webm_data)
 
-        def process_enrollment_audio(
-            self, audio: Any, expected_prompt: str
-        ) -> Any:
-            from voiceauth.engine.asr import extract_digit_timestamps, segment_by_timestamps
+        def process_enrollment_audio(self, audio: Any, expected_prompt: str) -> Any:
+            from voiceauth.engine.asr import (
+                extract_digit_timestamps,
+                segment_by_timestamps,
+            )
 
             # Run ASR
             asr_result = self.asr.recognize(audio)

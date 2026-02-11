@@ -3,7 +3,11 @@
 import numpy as np
 import sherpa_onnx
 
-from voiceauth.engine.exceptions import ModelNotLoadedError, NoSpeechDetectedError, VADError
+from voiceauth.engine.exceptions import (
+    ModelNotLoadedError,
+    NoSpeechDetectedError,
+    VADError,
+)
 from voiceauth.engine.settings import settings
 
 

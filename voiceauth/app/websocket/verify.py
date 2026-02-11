@@ -114,7 +114,10 @@ def get_audio_processor() -> Any:
             expected_prompt: str,
             registered_embeddings: dict[str, Any],
         ) -> Any:
-            from voiceauth.engine.asr import extract_digit_timestamps, segment_by_timestamps
+            from voiceauth.engine.asr import (
+                extract_digit_timestamps,
+                segment_by_timestamps,
+            )
 
             # Run ASR
             asr_result = self.asr.recognize(audio)
@@ -123,6 +126,7 @@ def get_audio_processor() -> Any:
             asr_matched = asr_result.normalized_text == expected_prompt
 
             if not asr_matched:
+
                 class VerificationResult:
                     def __init__(self) -> None:
                         self._asr_text = asr_result.normalized_text
@@ -162,7 +166,9 @@ def get_audio_processor() -> Any:
             for seg in segments:
                 if seg.digit in registered_embeddings:
                     embedding = self.voiceprint.extract(seg.audio)
-                    score = cosine_similarity(embedding, registered_embeddings[seg.digit])
+                    score = cosine_similarity(
+                        embedding, registered_embeddings[seg.digit]
+                    )
                     digit_scores[seg.digit] = float(score)
 
             # Calculate average score
@@ -246,7 +252,7 @@ async def verify_websocket(websocket: WebSocket) -> None:
                 websocket.receive_text(),
                 timeout=settings.websocket_timeout,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await send_json(
                 websocket,
                 create_error_response("TIMEOUT", "タイムアウトしました"),
@@ -307,7 +313,7 @@ async def verify_websocket(websocket: WebSocket) -> None:
                     websocket.receive(),
                     timeout=settings.websocket_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await send_json(
                     websocket,
                     create_error_response("TIMEOUT", "タイムアウトしました"),
@@ -357,7 +363,7 @@ async def verify_websocket(websocket: WebSocket) -> None:
                         websocket.receive_text(),
                         timeout=settings.websocket_timeout,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     await send_json(
                         websocket,
                         create_error_response("TIMEOUT", "タイムアウトしました"),

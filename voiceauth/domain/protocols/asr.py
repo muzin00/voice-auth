@@ -31,9 +31,7 @@ class ASRProtocol(Protocol):
         """Load the ASR model."""
         ...
 
-    def recognize(
-        self, audio: np.ndarray, sample_rate: int | None = None
-    ) -> ASRResult:
+    def recognize(self, audio: np.ndarray, sample_rate: int | None = None) -> ASRResult:
         """Recognize speech from audio.
 
         Args:

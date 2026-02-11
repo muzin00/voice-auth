@@ -1,4 +1,4 @@
-.PHONY: test lint format typecheck run dev clean migrate
+.PHONY: test lint format typecheck run dev clean migrate setup
 
 # Run all tests
 test:
@@ -48,3 +48,8 @@ install:
 # Install development dependencies
 install-dev:
 	uv sync --group dev
+
+# Setup development environment (install deps + pre-commit hooks)
+setup:
+	uv sync --group dev
+	uv run pre-commit install

@@ -80,12 +80,14 @@ class TestVerifyWebSocket:
     ):
         """Test complete successful voice verification flow."""
         # Setup successful verification result
-        mock_audio_processor.verify_audio.return_value = create_mock_verification_result(
-            asr_text="1234",
-            asr_matched=True,
-            authenticated=True,
-            digit_scores={"1": 0.95, "2": 0.92, "3": 0.88, "4": 0.91},
-            average_score=0.915,
+        mock_audio_processor.verify_audio.return_value = (
+            create_mock_verification_result(
+                asr_text="1234",
+                asr_matched=True,
+                authenticated=True,
+                digit_scores={"1": 0.95, "2": 0.92, "3": 0.88, "4": 0.91},
+                average_score=0.915,
+            )
         )
 
         with (
@@ -137,12 +139,14 @@ class TestVerifyWebSocket:
     ):
         """Test voice verification fails but PIN fallback succeeds."""
         # Setup failed voice verification
-        mock_audio_processor.verify_audio.return_value = create_mock_verification_result(
-            asr_text="1234",
-            asr_matched=True,
-            authenticated=False,
-            digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-            average_score=0.615,
+        mock_audio_processor.verify_audio.return_value = (
+            create_mock_verification_result(
+                asr_text="1234",
+                asr_matched=True,
+                authenticated=False,
+                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
+                average_score=0.615,
+            )
         )
 
         with (
@@ -184,9 +188,7 @@ class TestVerifyWebSocket:
                 assert data["can_fallback_to_pin"] is True
 
                 # Send correct PIN
-                websocket.send_text(
-                    json.dumps({"type": "verify_pin", "pin": "1234"})
-                )
+                websocket.send_text(json.dumps({"type": "verify_pin", "pin": "1234"}))
 
                 # Receive PIN verification success
                 data = json.loads(websocket.receive_text())
@@ -197,10 +199,12 @@ class TestVerifyWebSocket:
     def test_asr_mismatch(self, client, mock_audio_processor, mock_speaker_store):
         """Test verification fails when ASR doesn't match prompt."""
         # Setup ASR mismatch
-        mock_audio_processor.verify_audio.return_value = create_mock_verification_result(
-            asr_text="5678",  # Different from prompt
-            asr_matched=False,
-            authenticated=False,
+        mock_audio_processor.verify_audio.return_value = (
+            create_mock_verification_result(
+                asr_text="5678",  # Different from prompt
+                asr_matched=False,
+                authenticated=False,
+            )
         )
 
         with (
@@ -239,9 +243,7 @@ class TestVerifyWebSocket:
                 assert data["authenticated"] is False
                 assert data["asr_matched"] is False
 
-    def test_speaker_not_found(
-        self, client, mock_audio_processor, mock_speaker_store
-    ):
+    def test_speaker_not_found(self, client, mock_audio_processor, mock_speaker_store):
         """Test error when speaker doesn't exist."""
         mock_speaker_store.speaker_exists.return_value = False
 
@@ -337,12 +339,14 @@ class TestVerifyWebSocket:
     ):
         """Test PIN verification fails with wrong PIN."""
         # Setup failed voice verification
-        mock_audio_processor.verify_audio.return_value = create_mock_verification_result(
-            asr_text="1234",
-            asr_matched=True,
-            authenticated=False,
-            digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-            average_score=0.615,
+        mock_audio_processor.verify_audio.return_value = (
+            create_mock_verification_result(
+                asr_text="1234",
+                asr_matched=True,
+                authenticated=False,
+                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
+                average_score=0.615,
+            )
         )
 
         with (
@@ -380,9 +384,7 @@ class TestVerifyWebSocket:
                 assert data["can_fallback_to_pin"] is True
 
                 # Send wrong PIN
-                websocket.send_text(
-                    json.dumps({"type": "verify_pin", "pin": "9999"})
-                )
+                websocket.send_text(json.dumps({"type": "verify_pin", "pin": "9999"}))
 
                 # Receive PIN verification failure
                 data = json.loads(websocket.receive_text())
@@ -402,12 +404,14 @@ class TestVerifyWebSocket:
         mock_speaker_store.get_speaker_by_id.return_value = mock_speaker
 
         # Setup failed voice verification
-        mock_audio_processor.verify_audio.return_value = create_mock_verification_result(
-            asr_text="1234",
-            asr_matched=True,
-            authenticated=False,
-            digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
-            average_score=0.615,
+        mock_audio_processor.verify_audio.return_value = (
+            create_mock_verification_result(
+                asr_text="1234",
+                asr_matched=True,
+                authenticated=False,
+                digit_scores={"1": 0.65, "2": 0.62, "3": 0.58, "4": 0.61},
+                average_score=0.615,
+            )
         )
 
         with (
@@ -444,4 +448,7 @@ class TestVerifyWebSocket:
                 data = json.loads(websocket.receive_text())
                 assert data["type"] == "verify_result"
                 assert data["authenticated"] is False
-                assert "can_fallback_to_pin" not in data or data.get("can_fallback_to_pin") is False
+                assert (
+                    "can_fallback_to_pin" not in data
+                    or data.get("can_fallback_to_pin") is False
+                )
