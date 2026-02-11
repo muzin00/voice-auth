@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 import numpy as np
-from ulid import ULID
+import ulid
 
 # Embedding dimension for CAM++ model
 EMBEDDING_DIM = 512
@@ -12,7 +12,7 @@ EMBEDDING_DIM = 512
 
 def _generate_ulid() -> str:
     """Generate a new ULID string."""
-    return str(ULID())
+    return str(ulid.new())
 
 
 def _utc_now() -> datetime:

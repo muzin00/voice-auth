@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import numpy as np
+import ulid
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
-from ulid import ULID
 
 if TYPE_CHECKING:
     pass
@@ -17,7 +17,7 @@ EMBEDDING_DIM = 512
 
 def _generate_ulid() -> str:
     """Generate a new ULID string."""
-    return str(ULID())
+    return str(ulid.new())
 
 
 def _utc_now() -> datetime:

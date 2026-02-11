@@ -3,8 +3,8 @@
 from datetime import UTC, datetime
 
 import numpy as np
+import ulid
 from sqlmodel import Session, select
-from ulid import ULID
 
 from voiceauth.database.exceptions import (
     SpeakerAlreadyExistsError,
@@ -212,7 +212,7 @@ class SpeakerStore:
         if existing:
             # Update existing voiceprint
             existing.embedding = VoiceprintModel.serialize_embedding(embedding)
-            existing.public_id = str(ULID())
+            existing.public_id = str(ulid.new())
             existing.created_at = datetime.now(UTC)
             self.session.add(existing)
             self.session.commit()
@@ -259,7 +259,7 @@ class SpeakerStore:
             if existing:
                 # Update existing
                 existing.embedding = VoiceprintModel.serialize_embedding(embedding)
-                existing.public_id = str(ULID())
+                existing.public_id = str(ulid.new())
                 existing.created_at = datetime.now(UTC)
                 self.session.add(existing)
                 voiceprints.append(existing)
