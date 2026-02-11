@@ -2,141 +2,256 @@
 
 > このドキュメントは、VCA Server のアーキテクチャ設計を定めたものです。
 
-## コンセプト & アーキテクチャ
+## コンセプト
 
-Rust の Workspace 思想を取り入れた **Modular Monolith (Package by Feature)** 構成を採用します。
-各機能は独立した Python パッケージとして管理され、明確な責務と依存方向を持ちます。
+**Disposable Architecture（使い捨て可能なアーキテクチャ）** を採用します。
 
-- **パッケージ管理**: `uv` Workspace
-- **依存性管理**: 依存性逆転の原則 (DIP) による疎結合設計
-- **ORM**: SQLModel (ドメインモデルと DB 定義の実用的統合)
-- **マイグレーション**: プロジェクトルート集約型 (Alembic)
+- フレームワーク（FastAPI → Django、Litestar 等）を容易に差し替え可能
+- 音声認識モデル（SenseVoice → 他モデル）を容易に差し替え可能
+- ビジネスロジック（domain, domain_service）は外部ライブラリに依存しない
 
-## Router-Service-Repository パターン
+## モジュール構成
 
-FastAPIで推奨される「モダンな構成」。MVCをより細分化・進化させたパターン。
-FastAPIの強みである「自動ドキュメント生成」や「型安全」を活かすため、ビジネスロジック（Service）とデータベース処理（Repository）を分離し、テスト容易性を高め、コードの肥大化を抑える。
+**Modular Monolith** 構成を採用します。
+各機能は独立した Python モジュールとして管理され、明確な責務と依存方向を持ちます。
 
-| 層 | 役割 | 実装 |
+### Disposable モジュール（ライブラリ依存、差し替え可能）
+
+| モジュール | 役割 | 主な依存 |
 |---|---|---|
-| **Router** | パス定義、リクエスト受付、バリデーション | FastAPI Router |
-| **DTO** | 入出力データの型定義 | Pydantic モデル |
-| **Service** | 計算、外部API連携、条件分岐などの業務処理 | Python クラス/関数 |
-| **Repository** | データベースへのアクセス | SQLModel |
+| **database** | DB接続、Store実装、マイグレーション | SQLModel, Alembic |
+| **audio** | 音声処理全般（変換、リサンプリング等） | PyAV |
+| **engine/vad** | 発話区間検出 | sherpa-onnx (Silero VAD) |
+| **engine/asr** | 音声認識 | sherpa-onnx (SenseVoice) |
+| **engine/voiceprint** | 声紋認識 | sherpa-onnx (CAM++) |
+
+### Non-Disposable モジュール（ライブラリ非依存、コア部分）
+
+| モジュール | 役割 |
+|---|---|
+| **domain** | ドメインモデル（Entity, ValueObject）、Protocol 定義 |
+| **domain_service** | ビジネスロジック（ユースケース） |
+
+### アプリケーション層
+
+| モジュール | 役割 | 主な依存 |
+|---|---|---|
+| **app** | Webフレームワーク実装、Composition Root、DI | FastAPI, Pydantic |
 
 ## ディレクトリ構成
 
 ```
-vca_server/                     # プロジェクトルート
-├── pyproject.toml              # Workspace定義, Root依存関係
-├── alembic.ini                 # Alembic設定 (script_location = migrations)
-├── uv.lock                     # ロックファイル
-├── migrations/                 # 【DBマイグレーション管理】
-│   ├── env.py                  # 全パッケージのモデルを集約し、InfraのDB設定で実行
-│   ├── script.py.mako
-│   └── versions/               # マイグレーションスクリプト
+voiceauth/                          # プロジェクトルート
+├── pyproject.toml                  # 依存関係
+├── uv.lock                         # ロックファイル
+├── main.py                         # エントリポイント（アプリケーション起動）
 │
-└── packages/
-    ├── vca_api/                # 【プレゼンテーション層 / Composition Root】
-    │   ├── pyproject.toml
-    │   ├── tests/
-    │   └── vca_api/
-    │       ├── py.typed            # 型ヒントマーカー
-    │       ├── settings.py         # サーバー設定 (Host, Port, LogLevel)
-    │       ├── main.py             # FastAPI起動, Middleware, Router統合
-    │       ├── dependencies.py     # DIコンテナ (Infra実装をAuthサービスへ注入)
-    │       ├── exception_handlers.py # ドメイン例外をHTTPレスポンスへ変換
-    │       └── routers/            # エンドポイント定義
-    │           ├── auth.py         # 認証関連 API (WebSocket含む)
-    │           └── demo.py         # デモ画面用 API
+└── voiceauth/                      # パッケージルート
+    ├── __init__.py
     │
-    ├── vca_auth/               # 【機能ドメイン: 認証】(ビジネスロジックの中核)
-    │   ├── pyproject.toml
-    │   ├── tests/
-    │   └── vca_auth/
-    │       ├── py.typed
-    │       ├── settings.py         # 認証設定 (閾値, リトライ回数)
-    │       ├── protocols.py        # 外部への要求仕様 (Storage, EngineのIF定義)
-    │       ├── dto.py              # データ転送用モデル (Request/Response)
-    │       ├── models/             # 永続化モデル (SQLModel)
-    │       │   ├── __init__.py
-    │       │   ├── speaker.py      # 話者, PIN情報
-    │       │   └── voiceprint.py   # 声紋ベクトル
-    │       ├── services/           # ビジネスロジック (ユースケース)
-    │       │   ├── __init__.py
-    │       │   ├── enrollment.py   # 登録フロー (ステートマシン)
-    │       │   └── verify.py       # 認証フロー
-    │       └── repositories/       # データアクセス実装
-    │           ├── __init__.py
-    │           └── speaker_repo.py # DB操作 (CRUD)
+    ├── domain/                     # 【ドメイン層】
+    │   ├── __init__.py
+    │   ├── prompt_generator.py     # プロンプト生成ロジック
+    │   ├── models/                 # ドメインモデル（ORM非依存）
+    │   │   ├── speaker.py          # 話者エンティティ
+    │   │   └── voiceprint.py       # 声紋値オブジェクト
+    │   └── protocols/              # 外部への要求仕様（Protocol定義）
+    │       ├── vad.py              # VAD Protocol
+    │       ├── asr.py              # ASR Protocol
+    │       ├── voiceprint.py       # 声紋認識 Protocol
+    │       ├── audio.py            # 音声処理 Protocol
+    │       └── store.py       # Store Protocol
     │
-    ├── vca_engine/             # 【固有ドメイン: 音声AI】(sherpa-onnxの隠蔽)
-    │   ├── pyproject.toml
-    │   ├── tests/
-    │   └── vca_engine/
-    │       ├── py.typed
-    │       ├── settings.py         # エンジン設定 (モデルパス, スレッド数)
-    │       ├── loader.py           # モデルのロード・シングルトン管理
-    │       ├── processor.py        # 音声処理パイプライン (Facade)
-    │       ├── vad.py              # 音声区間検出 (Silero VAD)
-    │       ├── asr.py              # 音声認識 (Paraformer)
-    │       ├── speaker.py          # 声紋抽出 (CAM++)
-    │       ├── converter.py        # 音声フォーマット変換 (PyAV)
-    │       └── models/             # ONNXモデルバイナリ置き場
+    ├── domain_service/             # 【ドメインサービス層】
+    │   ├── __init__.py
+    │   ├── settings.py             # ドメインサービス設定（閾値等）
+    │   ├── enrollment.py           # 登録フロー（ステートマシン）
+    │   └── verify.py               # 認証フロー
     │
-    └── vca_infra/              # 【汎用インフラ】(技術的詳細)
-        ├── pyproject.toml
-        ├── tests/
-        └── vca_infra/
-            ├── py.typed
-            ├── settings.py         # インフラ設定 (DB URL, S3 Bucket, Region)
-            ├── database/           # DBセッション管理 (SQLAlchemy Engine)
-            └── storage/            # ファイルストレージ実装 (S3, Local)
+    ├── app/                        # 【アプリケーション層 / Composition Root】
+    │   ├── __init__.py
+    │   ├── settings.py             # サーバー設定（Host, Port, LogLevel）
+    │   ├── dependencies.py         # DI設定（FastAPI Depends）
+    │   ├── model_loader.py         # MLモデルのロード・シングルトン管理
+    │   ├── exception_handlers.py   # ドメイン例外をHTTPレスポンスへ変換
+    │   ├── dto/                    # リクエスト/レスポンス型定義
+    │   │   └── auth.py             # 認証関連DTO
+    │   ├── routers/                # エンドポイント定義
+    │   │   ├── auth.py             # 認証関連 API
+    │   │   └── demo.py             # デモ画面用 API
+    │   ├── websocket/              # WebSocket固有実装
+    │   │   └── auth.py             # 認証WebSocket
+    │   ├── templates/              # HTMLテンプレート（デモUI）
+    │   │   └── demo.html
+    │   └── static/                 # 静的ファイル（デモUI）
+    │       └── js/
+    │
+    ├── database/                   # 【データベース層】
+    │   ├── __init__.py
+    │   ├── alembic.ini             # Alembic設定
+    │   ├── migrations/             # マイグレーションスクリプト
+    │   │   ├── env.py
+    │   │   ├── script.py.mako
+    │   │   └── versions/
+    │   ├── settings.py             # DB設定（URL等）
+    │   ├── session.py              # DBセッション管理
+    │   ├── models.py               # SQLModelモデル（ORM定義）
+    │   └── stores/                 # Store実装
+    │       └── speaker_store.py
+    │
+    ├── audio/                      # 【音声処理】
+    │   ├── __init__.py
+    │   ├── converter.py            # フォーマット変換（WebM→PCM等）
+    │   └── processor.py            # リサンプリング、ノーマライズ等
+    │
+    └── engine/                     # 【音声AIエンジン群】
+        ├── __init__.py
+        ├── settings.py             # エンジン設定（モデルパス、スレッド数等）
+        ├── exceptions.py           # エンジン関連の例外
+        │
+        ├── vad/                    # 【VAD実装】
+        │   ├── __init__.py
+        │   └── silero.py           # Silero VAD実装
+        │
+        ├── asr/                    # 【ASR実装】
+        │   ├── __init__.py
+        │   ├── sensevoice.py       # SenseVoice実装
+        │   └── segmentation.py     # デジット分割処理
+        │
+        └── voiceprint/             # 【声紋認識実装】
+            ├── __init__.py
+            └── campp.py            # CAM++実装
 ```
-
-## 各パッケージの役割
-
-| パッケージ | 役割 |
-|---|---|
-| **vca_api** | プレゼンテーション層。FastAPI に依存し、Composition Root（依存関係の組み立て）として機能 |
-| **vca_auth** | 認証ドメイン。ビジネスロジックの中核。他パッケージの実装詳細（S3 や sherpa-onnx）には依存しない |
-| **vca_engine** | 音声AI処理。sherpa-onnx を隠蔽し、VAD/ASR/声紋抽出の機能を提供 |
-| **vca_infra** | 汎用インフラ。DB 接続やストレージ等の技術的詳細を担当 |
 
 ## 依存の流れ
 
 ```
-vca_api → { vca_auth, vca_engine, vca_infra }
-vca_infra → (依存なし)
-vca_engine → (依存なし)
-vca_auth → (依存なし)
+app → { domain_service, domain, database, audio, engine/* }
+domain_service → domain
+database → domain
+audio, engine/* → (依存なし)
+```
+
+```mermaid
+graph TD
+    A[app] --> DS[domain_service]
+    A --> D[domain]
+    A --> DB[database]
+    A --> AU[audio]
+    A --> E[engine]
+    E --> VAD[vad]
+    E --> ASR[asr]
+    E --> VP[voiceprint]
+    DS --> D
+    DB --> D
 ```
 
 ## 依存性逆転（Protocol パターン）
 
-vca_auth の Service は、永続化や音声処理の具象実装に直接依存しない。代わりに vca_auth/protocols.py に Protocol（インターフェース）を定義し、vca_engine や vca_infra がその Protocol を実装する。
+domain_service は、音声処理や永続化の具象実装に直接依存しない。
+代わりに domain/protocols/ に Protocol（インターフェース）を定義し、各 Disposable モジュールがその Protocol を実装する。
 
-vca_api は Composition Root として機能し、dependencies.py で vca_engine / vca_infra の具象実装を vca_auth の Service に注入する。これにより、vca_auth は外部機能の詳細を知らずにビジネスロジックを実行できる。
+```python
+# voiceauth/domain/protocols/asr.py
+from typing import Protocol
+
+class ASRProtocol(Protocol):
+    def transcribe(self, audio: bytes) -> str:
+        ...
+```
+
+```python
+# voiceauth/engine/asr/sensevoice.py
+class SenseVoiceASR:
+    def transcribe(self, audio: bytes) -> str:
+        # sherpa-onnx を使った実装
+        ...
+```
+
+app は Composition Root として機能し、dependencies.py で各 Disposable モジュールの具象実装を domain_service に注入する。
+これにより、domain_service は外部機能の詳細を知らずにビジネスロジックを実行できる。
+
+```python
+# voiceauth/app/dependencies.py
+from fastapi import Depends
+from voiceauth.engine.asr.sensevoice import SenseVoiceASR
+from voiceauth.domain.protocols.asr import ASRProtocol
+
+def get_asr() -> ASRProtocol:
+    return SenseVoiceASR()
+```
 
 ## 開発ガイドライン
 
-1. **依存の方向**
-   - `vca_auth` は `vca_engine` や `vca_infra` を `import` してはいけない
-   - 必要な外部機能は必ず `protocols.py` に定義し、DI で受け取る
+### 1. 依存の方向
 
-2. **設定の管理**
-   - 各パッケージは独立した `settings.py` を持つ
-   - 設定値は環境変数から読み込む（例: `VCA_AUTH_THRESHOLD`, `VCA_INFRA_DB_URL`）
+- `domain` は他のモジュールを import してはいけない
+- `domain_service` は `domain` のみを import できる
+- 必要な外部機能は必ず `domain/protocols/` に定義し、DI で受け取る
 
-3. **型安全性**
-   - 全パッケージに `py.typed` を配置
-   - Protocol に対する実装クラスの適合性は `mypy`（静的解析）でチェック
+### 2. 設定の管理
 
-4. **例外処理**
-   - 各パッケージ内で発生したエラーは独自の例外クラスとして送出
-   - それらを `vca_api/exception_handlers.py` で一元的にハンドリング
+- 各モジュールは独立した `settings.py` を持つ
+- 設定値は環境変数から読み込む
+
+### 3. 型安全性
+
+- 全モジュールに `py.typed` を配置
+- Protocol に対する実装クラスの適合性は `mypy`（静的解析）でチェック
+
+### 4. 例外処理
+
+- 各モジュール内で発生したエラーは独自の例外クラスとして送出
+- それらを `app/exception_handlers.py` で一元的にハンドリング
+
+### 5. WebSocket
+
+- WebSocket は app 固有の実装として扱う
+- ステートフルな通信のため、Disposable な抽象化は行わない
 
 ## テスト構成
 
-テストファイルは各パッケージの `tests/` ディレクトリに配置する。
-`vca_auth` のテストでは、Engine や Infra をモックに差し替えることで高速に実行可能。
+テストファイルはテスト対象と同じディレクトリに配置する。
+**結合テスト中心** の戦略を採用し、app 層での E2E テストを主とする。
+
+domain_service のテストでは、各 Disposable モジュールをモックに差し替えることで高速に実行可能。
+
+### テストファイル命名規則
+
+- ファイル名: `test_*.py`（例: `test_auth.py`, `test_enrollment.py`）
+- テスト対象と同じディレクトリに配置
+- pytest のデフォルト規則に従う
+
+```
+voiceauth/app/
+├── dependencies.py
+├── test_dependencies.py    # 同じ階層に配置
+└── routers/
+    ├── auth.py
+    └── test_auth.py        # 同じ階層に配置
+```
+
+## 現行構成からの移行
+
+| 現行 | 移行先 |
+|---|---|
+| vca_auth/models/speaker.py | voiceauth/domain/models/speaker.py |
+| vca_auth/models/digit_voiceprint.py | voiceauth/domain/models/voiceprint.py |
+| vca_auth/services/enrollment_service.py | voiceauth/domain_service/enrollment.py |
+| vca_auth/services/verify_service.py | voiceauth/domain_service/verify.py |
+| vca_auth/services/prompt_generator.py | voiceauth/domain/prompt_generator.py |
+| vca_auth/stores/ | voiceauth/database/stores/ |
+| vca_api/routes/ | voiceauth/app/routers/ |
+| vca_api/websocket/ | voiceauth/app/websocket/ |
+| vca_engine/vad.py | voiceauth/engine/vad/silero.py |
+| vca_engine/asr.py | voiceauth/engine/asr/sensevoice.py |
+| vca_engine/segmentation.py | voiceauth/engine/asr/segmentation.py |
+| vca_engine/voiceprint.py | voiceauth/engine/voiceprint/campp.py |
+| vca_engine/audio_converter.py | voiceauth/audio/converter.py |
+| vca_engine/audio_processor.py | 削除（Facade廃止） |
+| vca_engine/model_loader.py | voiceauth/app/model_loader.py |
+| vca_engine/exceptions.py | voiceauth/engine/exceptions.py |
+| vca_api/templates/ | voiceauth/app/templates/ |
+| vca_api/static/ | voiceauth/app/static/ |
+| vca_infra/settings.py | voiceauth/database/settings.py |
+| vca_infra/storage/ | 削除 |
