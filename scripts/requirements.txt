@@ -1,2 +1,0 @@
-# Dependencies for build scripts (model download, etc.)
-huggingface_hub>=0.20.0

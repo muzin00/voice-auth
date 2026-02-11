@@ -25,16 +25,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
 # --- Stage 3: Model Downloader ---
-FROM python:3.11-slim AS model-downloader
-WORKDIR /app
-
-# Install huggingface_hub for model download
-COPY scripts/requirements.txt ./scripts/
-RUN pip install --no-cache-dir -r scripts/requirements.txt
+FROM builder AS model-downloader
 
 # Copy and run download script
 COPY scripts/download_models.py ./scripts/
-RUN python scripts/download_models.py --models-dir ./models
+RUN .venv/bin/python scripts/download_models.py --models-dir ./models
 
 # --- Stage 4: Runtime Base ---
 FROM python:3.11-slim AS runtime-base
