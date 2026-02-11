@@ -42,20 +42,13 @@ coverage.xml
 # Linting
 .ruff_cache/
 
-# Build
-*.egg-info/
-
 # Environment
 .env
 .env.local
 
-# Data
-data/
+# Database
 *.db
 *.sqlite
-
-# Models (downloaded at runtime)
-models/
 
 # Logs
 *.log
@@ -69,6 +62,3 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
-
-# Deprecated packages directory (remove after migration)
-packages/
